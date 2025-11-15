@@ -70,6 +70,13 @@
     #define KEYBOARD_STATUS_PORT 0x64
     #define KEY_LSHIFT 0x2A
     #define KEY_RSHIFT 0x36
+    #define KEY_UP_ARROW 0x48
+    #define KEY_DOWN_ARROW 0x50
+    #define KEY_EXTENDED 0xE0
+    
+    // Special return values for arrow keys
+    #define SPECIAL_UP_ARROW 0x01
+    #define SPECIAL_DOWN_ARROW 0x02
 #endif
 
 // ====================
@@ -149,6 +156,9 @@ typedef struct Window {
 // GLOBAL VARIABLES
 // ====================
 
+#define MAX_HISTORY 50
+#define MAX_CMD_LEN 256
+
 static Entry entries[MAX_ENTRIES];
 static int entry_count = 0;
 static int cwd = 0;
@@ -157,6 +167,11 @@ static Window windows[MAX_WINDOWS];
 static int window_count = 0;
 static bool gui_mode = false;
 static int next_window_id = 1;
+
+// Command history
+static char command_history[MAX_HISTORY][MAX_CMD_LEN];
+static int history_count = 0;
+static int history_pos = 0;
 
 #ifdef KERNEL_MODE
     static size_t terminal_row;
@@ -175,6 +190,9 @@ static int next_window_id = 1;
 void terminal_writestring(const char* data);
 void clear_screen(void);
 char* strchr(const char* s, int c);
+#ifdef KERNEL_MODE
+void update_cursor(void);
+#endif
 
 // ====================
 // I/O PORT FUNCTIONS (KERNEL ONLY)
@@ -273,6 +291,38 @@ int atoi(const char* str) {
     
     return result * sign;
 }
+
+char* itoa(int value, char* str, int base) {
+    char* ptr = str;
+    char* ptr1 = str;
+    char tmp_char;
+    int tmp_value;
+
+    // Handle negative numbers for base 10
+    if (value < 0 && base == 10) {
+        *ptr++ = '-';
+        value = -value;
+        ptr1++;
+    }
+
+    // Convert to string (reversed)
+    do {
+        tmp_value = value;
+        value /= base;
+        *ptr++ = "0123456789abcdef"[tmp_value - value * base];
+    } while (value);
+
+    *ptr-- = '\0';
+
+    // Reverse string
+    while (ptr1 < ptr) {
+        tmp_char = *ptr;
+        *ptr-- = *ptr1;
+        *ptr1++ = tmp_char;
+    }
+
+    return str;
+}
 #endif
 
 // ====================
@@ -300,6 +350,7 @@ int atoi(const char* str) {
                 terminal_buffer[index] = vga_entry(' ', terminal_color);
             }
         }
+        update_cursor();
     }
 
     void terminal_setcolor(uint8_t color) {
@@ -323,11 +374,24 @@ int atoi(const char* str) {
         terminal_row = VGA_HEIGHT - 1;
     }
 
+    void update_cursor(void) {
+        uint16_t pos = terminal_row * VGA_WIDTH + terminal_column;
+        
+        // Cursor LOW port to VGA INDEX register
+        outb(0x3D4, 0x0F);
+        outb(0x3D5, (uint8_t)(pos & 0xFF));
+        
+        // Cursor HIGH port to VGA INDEX register
+        outb(0x3D4, 0x0E);
+        outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
+    }
+
     void terminal_putchar(char c) {
         if (c == '\n') {
             terminal_column = 0;
             if (++terminal_row == VGA_HEIGHT)
                 terminal_scroll();
+            update_cursor();
             return;
         }
         
@@ -336,6 +400,7 @@ int atoi(const char* str) {
                 terminal_column--;
                 terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
             }
+            update_cursor();
             return;
         }
         
@@ -345,6 +410,7 @@ int atoi(const char* str) {
             if (++terminal_row == VGA_HEIGHT)
                 terminal_scroll();
         }
+        update_cursor();
     }
 
     void terminal_write(const char* data, size_t size) {
@@ -410,10 +476,29 @@ int atoi(const char* str) {
     };
 
     char keyboard_getchar(void) {
+        static bool extended = false;
         uint8_t scancode;
         
         while (!(inb(KEYBOARD_STATUS_PORT) & 0x01));
         scancode = inb(KEYBOARD_DATA_PORT);
+        
+        // Handle extended keys (0xE0 prefix)
+        if (scancode == KEY_EXTENDED) {
+            extended = true;
+            return 0;
+        }
+        
+        // Handle arrow keys (extended scancodes)
+        if (extended) {
+            extended = false;
+            if (scancode == KEY_UP_ARROW) {
+                return SPECIAL_UP_ARROW;
+            }
+            if (scancode == KEY_DOWN_ARROW) {
+                return SPECIAL_DOWN_ARROW;
+            }
+            return 0;
+        }
         
         if (scancode == KEY_LSHIFT || scancode == KEY_RSHIFT) {
             shift_pressed = true;
@@ -439,15 +524,83 @@ int atoi(const char* str) {
 
     void read_line(char* buffer, size_t max_len) {
         size_t pos = 0;
+        int current_history_pos = history_count;  // Start at end of history
         
         while (1) {
             char c = keyboard_getchar();
             
             if (c == 0) continue;
             
+            // Handle up arrow - go back in history
+            if (c == SPECIAL_UP_ARROW) {
+                if (current_history_pos > 0) {
+                    current_history_pos--;
+                    
+                    // Clear current line
+                    while (pos > 0) {
+                        terminal_putchar('\b');
+                        pos--;
+                    }
+                    
+                    // Copy history entry to buffer
+                    strcpy(buffer, command_history[current_history_pos]);
+                    pos = strlen(buffer);
+                    
+                    // Display it
+                    for (size_t i = 0; i < pos; i++) {
+                        terminal_putchar(buffer[i]);
+                    }
+                }
+                continue;
+            }
+            
+            // Handle down arrow - go forward in history
+            if (c == SPECIAL_DOWN_ARROW) {
+                if (current_history_pos < history_count) {
+                    current_history_pos++;
+                    
+                    // Clear current line
+                    while (pos > 0) {
+                        terminal_putchar('\b');
+                        pos--;
+                    }
+                    
+                    // If at end of history, show blank line
+                    if (current_history_pos == history_count) {
+                        buffer[0] = '\0';
+                        pos = 0;
+                    } else {
+                        // Copy history entry to buffer
+                        strcpy(buffer, command_history[current_history_pos]);
+                        pos = strlen(buffer);
+                        
+                        // Display it
+                        for (size_t i = 0; i < pos; i++) {
+                            terminal_putchar(buffer[i]);
+                        }
+                    }
+                }
+                continue;
+            }
+            
             if (c == '\n') {
                 buffer[pos] = '\0';
                 terminal_putchar('\n');
+                
+                // Add to history if non-empty and different from last command
+                if (pos > 0 && (history_count == 0 || strcmp(buffer, command_history[history_count - 1]) != 0)) {
+                    if (history_count < MAX_HISTORY) {
+                        strcpy(command_history[history_count], buffer);
+                        history_count++;
+                    } else {
+                        // Shift history up and add new command at end
+                        for (int i = 0; i < MAX_HISTORY - 1; i++) {
+                            strcpy(command_history[i], command_history[i + 1]);
+                        }
+                        strcpy(command_history[MAX_HISTORY - 1], buffer);
+                    }
+                }
+                
                 return;
             }
             
@@ -456,7 +609,7 @@ int atoi(const char* str) {
                     pos--;
                     terminal_putchar('\b');
                 }
-            } else if (pos < max_len - 1) {
+            } else if (pos < max_len - 1 && c >= ' ') {  // Only accept printable characters
                 buffer[pos++] = c;
                 terminal_putchar(c);
             }
@@ -735,15 +888,20 @@ void cmd_help(void) {
     terminal_writestring("  whoami         - show current user\n");
     if (is_current_user_admin()) {
         terminal_writestring("  listusers      - list all users (admin)\n");
-        #ifndef KERNEL_MODE
-            terminal_writestring("  adduser        - add new user (admin)\n");
-            terminal_writestring("  deluser        - delete user (admin)\n");
-        #endif
+        terminal_writestring("  adduser        - add new user (admin)\n");
+        terminal_writestring("  deluser        - delete user (admin)\n");
     }
-    #ifndef KERNEL_MODE
-        terminal_writestring("  passwd         - change password\n");
+    terminal_writestring("  passwd         - change password\n");
+    if (!gui_mode) {
         terminal_writestring("  startgui       - start GUI mode\n");
-    #endif
+    } else {
+        terminal_writestring("  newwin         - create new window\n");
+        terminal_writestring("  closewin       - close window\n");
+        terminal_writestring("  focuswin       - focus window\n");
+        terminal_writestring("  listwin        - list windows\n");
+        terminal_writestring("  writewin       - write to window\n");
+        terminal_writestring("  exitgui        - exit GUI mode\n");
+    }
     terminal_writestring("  clear          - clear screen\n");
     terminal_writestring("  help           - show this help\n");
 }
@@ -856,31 +1014,49 @@ void cmd_listusers(void) {
     }
 }
 
-#ifndef KERNEL_MODE
-// Simulator-only commands
-
 void cmd_passwd(void) {
     char oldpass[MAX_PASSWORD];
     char newpass[MAX_PASSWORD];
     char confirm[MAX_PASSWORD];
     
+#ifdef KERNEL_MODE
+    terminal_writestring("Old password: ");
+    read_line(oldpass, sizeof(oldpass));
+#else
     printf("Old password: ");
     read_password(oldpass, sizeof(oldpass));
+#endif
     
     if (!verify_password(auth.current_user, oldpass)) {
+#ifdef KERNEL_MODE
+        terminal_writestring("Incorrect password\n");
+#else
         printf(COLOR_RED "Incorrect password\n" COLOR_RESET);
+#endif
         memset(oldpass, 0, sizeof(oldpass));
         return;
     }
     
+#ifdef KERNEL_MODE
+    terminal_writestring("New password: ");
+    read_line(newpass, sizeof(newpass));
+    
+    terminal_writestring("Confirm password: ");
+    read_line(confirm, sizeof(confirm));
+#else
     printf("New password: ");
     read_password(newpass, sizeof(newpass));
     
     printf("Confirm password: ");
     read_password(confirm, sizeof(confirm));
+#endif
     
     if (strcmp(newpass, confirm) != 0) {
+#ifdef KERNEL_MODE
+        terminal_writestring("Passwords do not match\n");
+#else
         printf(COLOR_RED "Passwords do not match\n" COLOR_RESET);
+#endif
         memset(oldpass, 0, sizeof(oldpass));
         memset(newpass, 0, sizeof(newpass));
         memset(confirm, 0, sizeof(confirm));
@@ -888,7 +1064,11 @@ void cmd_passwd(void) {
     }
     
     sha256_simple(newpass, auth.users[auth.current_user].password_hash);
+#ifdef KERNEL_MODE
+    terminal_writestring("Password changed successfully\n");
+#else
     printf(COLOR_GREEN "Password changed successfully\n" COLOR_RESET);
+#endif
     
     memset(oldpass, 0, sizeof(oldpass));
     memset(newpass, 0, sizeof(newpass));
@@ -897,17 +1077,29 @@ void cmd_passwd(void) {
 
 void cmd_adduser(const char* username, const char* password) {
     if (!is_current_user_admin()) {
+#ifdef KERNEL_MODE
+        terminal_writestring("Permission denied\n");
+#else
         printf(COLOR_RED "Permission denied\n" COLOR_RESET);
+#endif
         return;
     }
     
     if (auth.user_count >= MAX_USERS) {
+#ifdef KERNEL_MODE
+        terminal_writestring("Maximum users reached\n");
+#else
         printf(COLOR_RED "Maximum users reached\n" COLOR_RESET);
+#endif
         return;
     }
     
     if (find_user(username) != -1) {
+#ifdef KERNEL_MODE
+        terminal_writestring("User already exists\n");
+#else
         printf(COLOR_RED "User already exists\n" COLOR_RESET);
+#endif
         return;
     }
     
@@ -918,44 +1110,149 @@ void cmd_adduser(const char* username, const char* password) {
     new_user->active = true;
     auth.user_count++;
     
+#ifdef KERNEL_MODE
+    terminal_writestring("User created successfully\n");
+#else
     printf(COLOR_GREEN "User created successfully\n" COLOR_RESET);
+#endif
 }
 
 void cmd_deluser(const char* username) {
     if (!is_current_user_admin()) {
+#ifdef KERNEL_MODE
+        terminal_writestring("Permission denied\n");
+#else
         printf(COLOR_RED "Permission denied\n" COLOR_RESET);
+#endif
         return;
     }
     
     if (strcmp(username, get_current_username()) == 0) {
+#ifdef KERNEL_MODE
+        terminal_writestring("Cannot delete current user\n");
+#else
         printf(COLOR_RED "Cannot delete current user\n" COLOR_RESET);
+#endif
         return;
     }
     
     int user_idx = find_user(username);
     if (user_idx == -1) {
+#ifdef KERNEL_MODE
+        terminal_writestring("User not found\n");
+#else
         printf(COLOR_RED "User not found\n" COLOR_RESET);
+#endif
         return;
     }
     
     auth.users[user_idx].active = false;
+#ifdef KERNEL_MODE
+    terminal_writestring("User deleted successfully\n");
+#else
     printf(COLOR_GREEN "User deleted successfully\n" COLOR_RESET);
+#endif
 }
 
+#ifdef KERNEL_MODE
+// VGA window rendering functions
+void draw_window(Window* win) {
+    if (!win->visible) return;
+    
+    uint8_t win_color = win->focused ? 
+        vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLUE) :
+        vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+    
+    // Draw top border with title
+    for (int x = 0; x < win->width && (win->x + x) < VGA_WIDTH; x++) {
+        char c = (x == 0) ? '+' : (x == win->width - 1) ? '+' : '-';
+        if (x > 0 && x < win->width - 1 && x - 1 < (int)strlen(win->title)) {
+            c = win->title[x - 1];
+        }
+        if (win->y < VGA_HEIGHT && (win->x + x) < VGA_WIDTH) {
+            terminal_putentryat(c, win_color, win->x + x, win->y);
+        }
+    }
+    
+    // Draw sides and content
+    for (int y = 1; y < win->height - 1; y++) {
+        if ((win->y + y) >= VGA_HEIGHT) break;
+        
+        // Left border
+        if (win->x < VGA_WIDTH) {
+            terminal_putentryat('|', win_color, win->x, win->y + y);
+        }
+        
+        // Content area
+        for (int x = 1; x < win->width - 1; x++) {
+            if ((win->x + x) >= VGA_WIDTH) break;
+            terminal_putentryat(' ', win_color, win->x + x, win->y + y);
+        }
+        
+        // Right border
+        if ((win->x + win->width - 1) < VGA_WIDTH) {
+            terminal_putentryat('|', win_color, win->x + win->width - 1, win->y + y);
+        }
+    }
+    
+    // Draw bottom border
+    int bottom_y = win->y + win->height - 1;
+    if (bottom_y < VGA_HEIGHT) {
+        for (int x = 0; x < win->width && (win->x + x) < VGA_WIDTH; x++) {
+            char c = (x == 0) ? '+' : (x == win->width - 1) ? '+' : '-';
+            terminal_putentryat(c, win_color, win->x + x, bottom_y);
+        }
+    }
+    
+    // Draw buffer content inside window
+    if (win->buffer_len > 0) {
+        int content_x = win->x + 2;
+        int content_y = win->y + 1;
+        for (size_t i = 0; i < win->buffer_len && i < (size_t)(win->width - 4); i++) {
+            if (content_x + i < VGA_WIDTH && content_y < VGA_HEIGHT) {
+                terminal_putentryat(win->buffer[i], win_color, content_x + i, content_y);
+            }
+        }
+    }
+}
+
+void render_all_windows(void) {
+    for (int i = 0; i < window_count; i++) {
+        draw_window(&windows[i]);
+    }
+    update_cursor();
+}
+#endif
+
 void cmd_startgui(void) {
+#ifdef KERNEL_MODE
+    clear_screen();
+    terminal_writestring("GUI mode activated\n");
+    terminal_writestring("GUI commands: newwin, closewin, focuswin, listwin, writewin, exitgui\n");
+    terminal_writestring("Press Enter to continue...\n");
+#else
     printf(COLOR_YELLOW "GUI mode not fully implemented in this version\n" COLOR_RESET);
     printf("GUI commands: newwin, closewin, focuswin, listwin, writewin, exitgui\n");
+#endif
     gui_mode = true;
 }
 
 void cmd_exitgui(void) {
     gui_mode = false;
+#ifdef KERNEL_MODE
+    terminal_writestring("Exited GUI mode\n");
+#else
     printf(COLOR_GREEN "Exited GUI mode\n" COLOR_RESET);
+#endif
 }
 
 void cmd_newwin(const char* title, int x, int y, int w, int h) {
     if (window_count >= MAX_WINDOWS) {
+#ifdef KERNEL_MODE
+        terminal_writestring("Maximum windows reached\n");
+#else
         printf(COLOR_RED "Maximum windows reached\n" COLOR_RESET);
+#endif
         return;
     }
     
@@ -975,7 +1272,16 @@ void cmd_newwin(const char* title, int x, int y, int w, int h) {
         windows[i].focused = false;
     }
     
+#ifdef KERNEL_MODE
+    render_all_windows();
+    terminal_writestring("Window ");
+    char id_str[12];
+    itoa(win->id, id_str, 10);
+    terminal_writestring(id_str);
+    terminal_writestring(" created\n");
+#else
     printf(COLOR_GREEN "Window %d created\n" COLOR_RESET, win->id);
+#endif
 }
 
 void cmd_closewin(int id) {
@@ -985,36 +1291,93 @@ void cmd_closewin(int id) {
                 windows[j] = windows[j + 1];
             }
             window_count--;
+#ifdef KERNEL_MODE
+            clear_screen();
+            render_all_windows();
+            terminal_writestring("Window closed\n");
+#else
             printf(COLOR_GREEN "Window closed\n" COLOR_RESET);
+#endif
             return;
         }
     }
+#ifdef KERNEL_MODE
+    terminal_writestring("Window not found\n");
+#else
     printf(COLOR_RED "Window not found\n" COLOR_RESET);
+#endif
 }
 
 void cmd_focuswin(int id) {
     for (int i = 0; i < window_count; i++) {
         windows[i].focused = (windows[i].id == id);
         if (windows[i].id == id) {
+#ifdef KERNEL_MODE
+            clear_screen();
+            render_all_windows();
+            terminal_writestring("Window ");
+            char id_str[12];
+            itoa(id, id_str, 10);
+            terminal_writestring(id_str);
+            terminal_writestring(" focused\n");
+#else
             printf(COLOR_GREEN "Window %d focused\n" COLOR_RESET, id);
+#endif
             return;
         }
     }
+#ifdef KERNEL_MODE
+    terminal_writestring("Window not found\n");
+#else
     printf(COLOR_RED "Window not found\n" COLOR_RESET);
+#endif
 }
 
 void cmd_listwin(void) {
     if (window_count == 0) {
+#ifdef KERNEL_MODE
+        terminal_writestring("No windows\n");
+#else
         printf("No windows\n");
+#endif
         return;
     }
+#ifdef KERNEL_MODE
+    terminal_writestring("Windows:\n");
+#else
     printf("Windows:\n");
+#endif
     for (int i = 0; i < window_count; i++) {
+#ifdef KERNEL_MODE
+        terminal_writestring("  [");
+        char id_str[12];
+        itoa(windows[i].id, id_str, 10);
+        terminal_writestring(id_str);
+        terminal_writestring("] ");
+        terminal_writestring(windows[i].title);
+        terminal_writestring(" (");
+        char dim_str[12];
+        itoa(windows[i].width, dim_str, 10);
+        terminal_writestring(dim_str);
+        terminal_writestring("x");
+        itoa(windows[i].height, dim_str, 10);
+        terminal_writestring(dim_str);
+        terminal_writestring(" at ");
+        itoa(windows[i].x, dim_str, 10);
+        terminal_writestring(dim_str);
+        terminal_writestring(",");
+        itoa(windows[i].y, dim_str, 10);
+        terminal_writestring(dim_str);
+        terminal_writestring(")");
+        if (windows[i].focused) terminal_writestring(" *focused*");
+        terminal_writestring("\n");
+#else
         printf("  [%d] %s (%dx%d at %d,%d)%s\n",
                windows[i].id, windows[i].title,
                windows[i].width, windows[i].height,
                windows[i].x, windows[i].y,
                windows[i].focused ? " *focused*" : "");
+#endif
     }
 }
 
@@ -1023,13 +1386,26 @@ void cmd_writewin(int id, const char* text) {
         if (windows[i].id == id) {
             strncpy(windows[i].buffer, text, sizeof(windows[i].buffer) - 1);
             windows[i].buffer_len = strlen(windows[i].buffer);
+#ifdef KERNEL_MODE
+            clear_screen();
+            render_all_windows();
+            terminal_writestring("Text written to window ");
+            char id_str[12];
+            itoa(id, id_str, 10);
+            terminal_writestring(id_str);
+            terminal_writestring("\n");
+#else
             printf(COLOR_GREEN "Text written to window %d\n" COLOR_RESET, id);
+#endif
             return;
         }
     }
+#ifdef KERNEL_MODE
+    terminal_writestring("Window not found\n");
+#else
     printf(COLOR_RED "Window not found\n" COLOR_RESET);
-}
 #endif
+}
 
 // ====================
 // COMMAND PARSER
@@ -1095,9 +1471,7 @@ void process_command(char* line) {
         cmd_listusers();
     } else if (strcmp(cmd, "clear") == 0) {
         clear_screen();
-    }
-#ifndef KERNEL_MODE
-    else if (strcmp(cmd, "passwd") == 0) {
+    } else if (strcmp(cmd, "passwd") == 0) {
         cmd_passwd();
     } else if (strcmp(cmd, "adduser") == 0) {
         char* user = strtok(NULL, " ");
@@ -1136,9 +1510,7 @@ void process_command(char* line) {
         char* text = strtok(NULL, "");
         if (id && text) cmd_writewin(atoi(id), text);
         else terminal_writestring("writewin: usage: writewin <id> <text>\n");
-    }
-#endif
-    else {
+    } else {
         terminal_writestring("Unknown command: ");
         terminal_writestring(cmd);
         terminal_writestring("\n");
