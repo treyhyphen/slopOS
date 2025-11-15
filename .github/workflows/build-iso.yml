@@ -12,6 +12,9 @@ on:
       - '.github/workflows/build-iso.yml'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-iso:
     runs-on: ubuntu-latest
