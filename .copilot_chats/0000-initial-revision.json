@@ -1,0 +1,2471 @@
+{
+  "version": 3,
+  "requesterUsername": "treyhyphen",
+  "requesterAvatarIconUri": {
+    "$mid": 1,
+    "path": "/u/1393039",
+    "scheme": "https",
+    "authority": "avatars.githubusercontent.com",
+    "query": "v=4"
+  },
+  "responderUsername": "GitHub Copilot",
+  "responderAvatarIconUri": {
+    "id": "copilot"
+  },
+  "initialLocation": "panel",
+  "requests": [
+    {
+      "requestId": "request_f1764650-2757-4a93-bb79-e71e71e9c573",
+      "message": {
+        "text": "you are an expert C programmer building an entire operating system in C\n\nstart by creating an operating system that has a command prompt that allows users to create files and directories as well as list them on a proprietary filesystem ",
+        "parts": [
+          {
+            "range": {
+              "start": 0,
+              "endExclusive": 236
+            },
+            "editorRange": {
+              "startLineNumber": 1,
+              "startColumn": 1,
+              "endLineNumber": 3,
+              "endColumn": 164
+            },
+            "text": "you are an expert C programmer building an entire operating system in C\n\nstart by creating an operating system that has a command prompt that allows users to create files and directories as well as list them on a proprietary filesystem ",
+            "kind": "text"
+          }
+        ]
+      },
+      "variableData": {
+        "variables": []
+      },
+      "response": [
+        {
+          "kind": "confirmation",
+          "title": "Enable GPT-5 mini (Preview) for all clients",
+          "message": "Enable access to the latest GPT-5 mini model from OpenAI. [Learn more about how GitHub Copilot serves GPT-5 mini](https://gh.io/copilot-openai).",
+          "data": {
+            "prompt": "you are an expert C programmer building an entire operating system in C\n\nstart by creating an operating system that has a command prompt that allows users to create files and directories as well as list them on a proprietary filesystem "
+          },
+          "buttons": [
+            "Enable"
+          ],
+          "isUsed": true
+        }
+      ],
+      "responseId": "response_2a8f2d96-c510-4996-8a7e-f7c2150031f3",
+      "result": {
+        "timings": {
+          "totalElapsed": 1
+        }
+      },
+      "followups": [],
+      "isCanceled": false,
+      "agent": {
+        "extensionId": {
+          "value": "GitHub.copilot-chat",
+          "_lower": "github.copilot-chat"
+        },
+        "publisherDisplayName": "GitHub",
+        "extensionPublisherId": "GitHub",
+        "extensionDisplayName": "GitHub Copilot Chat",
+        "id": "github.copilot.editsAgent",
+        "description": "Edit files in your workspace in agent mode",
+        "when": "config.chat.agent.enabled && !chatAgentModeDisallowed",
+        "metadata": {
+          "themeIcon": {
+            "id": "tools"
+          },
+          "hasFollowups": false,
+          "supportIssueReporting": false
+        },
+        "name": "agent",
+        "fullName": "GitHub Copilot",
+        "isDefault": true,
+        "locations": [
+          "panel"
+        ],
+        "modes": [
+          "agent"
+        ],
+        "slashCommands": [
+          {
+            "name": "list"
+          }
+        ],
+        "disambiguation": []
+      },
+      "contentReferences": [],
+      "codeCitations": [],
+      "timestamp": 1756865658733
+    },
+    {
+      "requestId": "request_06effa54-2f6c-4a5d-b1f4-3c9beb5c8800",
+      "message": {
+        "text": "@agent Enable: \"Enable GPT-5 mini (Preview) for all clients\"",
+        "parts": [
+          {
+            "range": {
+              "start": 0,
+              "endExclusive": 60
+            },
+            "editorRange": {
+              "startLineNumber": 1,
+              "startColumn": 1,
+              "endLineNumber": 1,
+              "endColumn": 61
+            },
+            "text": "@agent Enable: \"Enable GPT-5 mini (Preview) for all clients\"",
+            "kind": "text"
+          }
+        ]
+      },
+      "variableData": {
+        "variables": []
+      },
+      "response": [
+        {
+          "kind": "toolInvocationSerialized",
+          "invocationMessage": {
+            "value": "Creating [](file:///mnt/c/Users/trey/OneDrive/Dev/vibeos/src)",
+            "supportThemeIcons": false,
+            "supportHtml": false,
+            "uris": {
+              "file:///mnt/c/Users/trey/OneDrive/Dev/vibeos/src": {
+                "$mid": 1,
+                "path": "/mnt/c/Users/trey/OneDrive/Dev/vibeos/src",
+                "scheme": "vscode-remote",
+                "authority": "wsl+Ubuntu"
+              }
+            }
+          },
+          "pastTenseMessage": {
+            "value": "Created [](file:///mnt/c/Users/trey/OneDrive/Dev/vibeos/src)",
+            "supportThemeIcons": false,
+            "supportHtml": false,
+            "uris": {
+              "file:///mnt/c/Users/trey/OneDrive/Dev/vibeos/src": {
+                "$mid": 1,
+                "external": "vscode-remote://wsl%2Bubuntu/mnt/c/Users/trey/OneDrive/Dev/vibeos/src",
+                "path": "/mnt/c/Users/trey/OneDrive/Dev/vibeos/src",
+                "scheme": "vscode-remote",
+                "authority": "wsl+Ubuntu"
+              }
+            }
+          },
+          "isConfirmed": true,
+          "isComplete": true,
+          "toolCallId": "c6948d70-0572-4039-b2f6-92d8bd030baa",
+          "toolId": "copilot_createDirectory"
+        },
+        {
+          "kind": "toolInvocationSerialized",
+          "invocationMessage": {
+            "value": "Creating [](file:///mnt/c/Users/trey/OneDrive/Dev/vibeos/README.md)",
+            "supportThemeIcons": false,
+            "supportHtml": false,
+            "uris": {
+              "file:///mnt/c/Users/trey/OneDrive/Dev/vibeos/README.md": {
+                "$mid": 1,
+                "path": "/mnt/c/Users/trey/OneDrive/Dev/vibeos/README.md",
+                "scheme": "vscode-remote",
+                "authority": "wsl+Ubuntu"
+              }
+            }
+          },
+          "pastTenseMessage": {
+            "value": "Created [](file:///mnt/c/Users/trey/OneDrive/Dev/vibeos/README.md)",
+            "supportThemeIcons": false,
+            "supportHtml": false,
+            "uris": {
+              "file:///mnt/c/Users/trey/OneDrive/Dev/vibeos/README.md": {
+                "$mid": 1,
+                "external": "vscode-remote://wsl%2Bubuntu/mnt/c/Users/trey/OneDrive/Dev/vibeos/README.md",
+                "path": "/mnt/c/Users/trey/OneDrive/Dev/vibeos/README.md",
+                "scheme": "vscode-remote",
+                "authority": "wsl+Ubuntu"
+              }
+            }
+          },
+          "isConfirmed": true,
+          "isComplete": true,
+          "toolCallId": "520101e3-1f71-4d15-84fa-a7d44d279bff",
+          "toolId": "copilot_createFile"
+        },
+        {
+          "kind": "textEditGroup",
+          "uri": {
+            "$mid": 1,
+            "fsPath": "\\mnt\\c\\Users\\trey\\OneDrive\\Dev\\vibeos\\README.md",
+            "_sep": 1,
+            "external": "vscode-remote://wsl%2Bubuntu/mnt/c/Users/trey/OneDrive/Dev/vibeos/README.md",
+            "path": "/mnt/c/Users/trey/OneDrive/Dev/vibeos/README.md",
+            "scheme": "vscode-remote",
+            "authority": "wsl+Ubuntu"
+          },
+          "edits": [
+            [
+              {
+                "text": "vibeOS - minimal hobby OS",
+                "range": {
+                  "startLineNumber": 1,
+                  "startColumn": 1,
+                  "endLineNumber": 1,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n",
+                "range": {
+                  "startLineNumber": 2,
+                  "startColumn": 1,
+                  "endLineNumber": 2,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\nThis repository contains a minimal hobby operating system written in C.",
+                "range": {
+                  "startLineNumber": 3,
+                  "startColumn": 1,
+                  "endLineNumber": 3,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\nIt includes a small kernel, a simple proprietary filesystem, and a command prompt",
+                "range": {
+                  "startLineNumber": 4,
+                  "startColumn": 1,
+                  "endLineNumber": 4,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\nthat supports creating files/directories and listing them.",
+                "range": {
+                  "startLineNumber": 5,
+                  "startColumn": 1,
+                  "endLineNumber": 5,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n",
+                "range": {
+                  "startLineNumber": 6,
+                  "startColumn": 1,
+                  "endLineNumber": 6,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\nBuild and run instructions will be added.",
+                "range": {
+                  "startLineNumber": 7,
+                  "startColumn": 1,
+                  "endLineNumber": 7,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n",
+                "range": {
+                  "startLineNumber": 8,
+                  "startColumn": 1,
+                  "endLineNumber": 8,
+                  "endColumn": 1
+                }
+              }
+            ],
+            []
+          ],
+          "done": true
+        },
+        {
+          "kind": "toolInvocationSerialized",
+          "invocationMessage": {
+            "value": "Creating [](file:///mnt/c/Users/trey/OneDrive/Dev/vibeos/src/main.c)",
+            "supportThemeIcons": false,
+            "supportHtml": false,
+            "uris": {
+              "file:///mnt/c/Users/trey/OneDrive/Dev/vibeos/src/main.c": {
+                "$mid": 1,
+                "path": "/mnt/c/Users/trey/OneDrive/Dev/vibeos/src/main.c",
+                "scheme": "vscode-remote",
+                "authority": "wsl+Ubuntu"
+              }
+            }
+          },
+          "pastTenseMessage": {
+            "value": "Created [](file:///mnt/c/Users/trey/OneDrive/Dev/vibeos/src/main.c)",
+            "supportThemeIcons": false,
+            "supportHtml": false,
+            "uris": {
+              "file:///mnt/c/Users/trey/OneDrive/Dev/vibeos/src/main.c": {
+                "$mid": 1,
+                "external": "vscode-remote://wsl%2Bubuntu/mnt/c/Users/trey/OneDrive/Dev/vibeos/src/main.c",
+                "path": "/mnt/c/Users/trey/OneDrive/Dev/vibeos/src/main.c",
+                "scheme": "vscode-remote",
+                "authority": "wsl+Ubuntu"
+              }
+            }
+          },
+          "isConfirmed": true,
+          "isComplete": true,
+          "toolCallId": "8a709745-1f22-4e5a-a518-c1580fed1e85",
+          "toolId": "copilot_createFile"
+        },
+        {
+          "kind": "textEditGroup",
+          "uri": {
+            "$mid": 1,
+            "fsPath": "\\mnt\\c\\Users\\trey\\OneDrive\\Dev\\vibeos\\src\\main.c",
+            "_sep": 1,
+            "external": "vscode-remote://wsl%2Bubuntu/mnt/c/Users/trey/OneDrive/Dev/vibeos/src/main.c",
+            "path": "/mnt/c/Users/trey/OneDrive/Dev/vibeos/src/main.c",
+            "scheme": "vscode-remote",
+            "authority": "wsl+Ubuntu"
+          },
+          "edits": [
+            [
+              {
+                "text": "/*",
+                "range": {
+                  "startLineNumber": 1,
+                  "startColumn": 1,
+                  "endLineNumber": 1,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n * vibeOS - minimal single-process kernel simulation",
+                "range": {
+                  "startLineNumber": 2,
+                  "startColumn": 1,
+                  "endLineNumber": 2,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n * This is not a real OS bootloader/kernel; it's a user-space simulator",
+                "range": {
+                  "startLineNumber": 3,
+                  "startColumn": 1,
+                  "endLineNumber": 3,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n * that demonstrates a proprietary filesystem and a command prompt.",
+                "range": {
+                  "startLineNumber": 4,
+                  "startColumn": 1,
+                  "endLineNumber": 4,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n *",
+                "range": {
+                  "startLineNumber": 5,
+                  "startColumn": 1,
+                  "endLineNumber": 5,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n * Features:",
+                "range": {
+                  "startLineNumber": 6,
+                  "startColumn": 1,
+                  "endLineNumber": 6,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n *  - Simple in-memory proprietary filesystem (flat + directories)",
+                "range": {
+                  "startLineNumber": 7,
+                  "startColumn": 1,
+                  "endLineNumber": 7,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n *  - Commands: mkdir, touch, ls, help, exit",
+                "range": {
+                  "startLineNumber": 8,
+                  "startColumn": 1,
+                  "endLineNumber": 8,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n *",
+                "range": {
+                  "startLineNumber": 9,
+                  "startColumn": 1,
+                  "endLineNumber": 9,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n * Build: gcc src/main.c -o vibeos_sim",
+                "range": {
+                  "startLineNumber": 10,
+                  "startColumn": 1,
+                  "endLineNumber": 10,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n */",
+                "range": {
+                  "startLineNumber": 11,
+                  "startColumn": 1,
+                  "endLineNumber": 11,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n",
+                "range": {
+                  "startLineNumber": 12,
+                  "startColumn": 1,
+                  "endLineNumber": 12,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n#include <stdio.h>",
+                "range": {
+                  "startLineNumber": 13,
+                  "startColumn": 1,
+                  "endLineNumber": 13,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n#include <stdlib.h>",
+                "range": {
+                  "startLineNumber": 14,
+                  "startColumn": 1,
+                  "endLineNumber": 14,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n#include <string.h>",
+                "range": {
+                  "startLineNumber": 15,
+                  "startColumn": 1,
+                  "endLineNumber": 15,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n#include <stdbool.h>",
+                "range": {
+                  "startLineNumber": 16,
+                  "startColumn": 1,
+                  "endLineNumber": 16,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n",
+                "range": {
+                  "startLineNumber": 17,
+                  "startColumn": 1,
+                  "endLineNumber": 17,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n#define MAX_NAME 64",
+                "range": {
+                  "startLineNumber": 18,
+                  "startColumn": 1,
+                  "endLineNumber": 18,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n#define MAX_ENTRIES 1024",
+                "range": {
+                  "startLineNumber": 19,
+                  "startColumn": 1,
+                  "endLineNumber": 19,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n",
+                "range": {
+                  "startLineNumber": 20,
+                  "startColumn": 1,
+                  "endLineNumber": 20,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\ntypedef enum { FILE_ENTRY, DIR_ENTRY } EntryType;",
+                "range": {
+                  "startLineNumber": 21,
+                  "startColumn": 1,
+                  "endLineNumber": 21,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n",
+                "range": {
+                  "startLineNumber": 22,
+                  "startColumn": 1,
+                  "endLineNumber": 22,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\ntypedef struct Entry {",
+                "range": {
+                  "startLineNumber": 23,
+                  "startColumn": 1,
+                  "endLineNumber": 23,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    char name[MAX_NAME];",
+                "range": {
+                  "startLineNumber": 24,
+                  "startColumn": 1,
+                  "endLineNumber": 24,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    EntryType type;",
+                "range": {
+                  "startLineNumber": 25,
+                  "startColumn": 1,
+                  "endLineNumber": 25,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    int parent; // index of parent directory, -1 for root",
+                "range": {
+                  "startLineNumber": 26,
+                  "startColumn": 1,
+                  "endLineNumber": 26,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    int first_child; // index of first child in linked list (-1 if none)",
+                "range": {
+                  "startLineNumber": 27,
+                  "startColumn": 1,
+                  "endLineNumber": 27,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    int next_sibling; // index of next sibling in parent's child list",
+                "range": {
+                  "startLineNumber": 28,
+                  "startColumn": 1,
+                  "endLineNumber": 28,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    char *data; // file data (malloc'd), NULL for directories",
+                "range": {
+                  "startLineNumber": 29,
+                  "startColumn": 1,
+                  "endLineNumber": 29,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    size_t size;",
+                "range": {
+                  "startLineNumber": 30,
+                  "startColumn": 1,
+                  "endLineNumber": 30,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n} Entry;",
+                "range": {
+                  "startLineNumber": 31,
+                  "startColumn": 1,
+                  "endLineNumber": 31,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n",
+                "range": {
+                  "startLineNumber": 32,
+                  "startColumn": 1,
+                  "endLineNumber": 32,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\nstatic Entry entries[MAX_ENTRIES];",
+                "range": {
+                  "startLineNumber": 33,
+                  "startColumn": 1,
+                  "endLineNumber": 33,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\nstatic int entry_count = 0;",
+                "range": {
+                  "startLineNumber": 34,
+                  "startColumn": 1,
+                  "endLineNumber": 34,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\nstatic int cwd = 0; // index of current working directory",
+                "range": {
+                  "startLineNumber": 35,
+                  "startColumn": 1,
+                  "endLineNumber": 35,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n",
+                "range": {
+                  "startLineNumber": 36,
+                  "startColumn": 1,
+                  "endLineNumber": 36,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\nint alloc_entry(const char *name, EntryType type, int parent) {",
+                "range": {
+                  "startLineNumber": 37,
+                  "startColumn": 1,
+                  "endLineNumber": 37,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    if (entry_count >= MAX_ENTRIES) return -1;",
+                "range": {
+                  "startLineNumber": 38,
+                  "startColumn": 1,
+                  "endLineNumber": 38,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    int idx = entry_count++;",
+                "range": {
+                  "startLineNumber": 39,
+                  "startColumn": 1,
+                  "endLineNumber": 39,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    memset(&entries[idx], 0, sizeof(Entry));",
+                "range": {
+                  "startLineNumber": 40,
+                  "startColumn": 1,
+                  "endLineNumber": 40,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    strncpy(entries[idx].name, name, MAX_NAME-1);",
+                "range": {
+                  "startLineNumber": 41,
+                  "startColumn": 1,
+                  "endLineNumber": 41,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    entries[idx].type = type;",
+                "range": {
+                  "startLineNumber": 42,
+                  "startColumn": 1,
+                  "endLineNumber": 42,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    entries[idx].parent = parent;",
+                "range": {
+                  "startLineNumber": 43,
+                  "startColumn": 1,
+                  "endLineNumber": 43,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    entries[idx].first_child = -1;",
+                "range": {
+                  "startLineNumber": 44,
+                  "startColumn": 1,
+                  "endLineNumber": 44,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    entries[idx].next_sibling = -1;",
+                "range": {
+                  "startLineNumber": 45,
+                  "startColumn": 1,
+                  "endLineNumber": 45,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    entries[idx].data = NULL;",
+                "range": {
+                  "startLineNumber": 46,
+                  "startColumn": 1,
+                  "endLineNumber": 46,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    entries[idx].size = 0;",
+                "range": {
+                  "startLineNumber": 47,
+                  "startColumn": 1,
+                  "endLineNumber": 47,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    return idx;",
+                "range": {
+                  "startLineNumber": 48,
+                  "startColumn": 1,
+                  "endLineNumber": 48,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n}",
+                "range": {
+                  "startLineNumber": 49,
+                  "startColumn": 1,
+                  "endLineNumber": 49,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n",
+                "range": {
+                  "startLineNumber": 50,
+                  "startColumn": 1,
+                  "endLineNumber": 50,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\nint find_child_by_name(int dir_idx, const char *name) {",
+                "range": {
+                  "startLineNumber": 51,
+                  "startColumn": 1,
+                  "endLineNumber": 51,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    if (dir_idx < 0 || dir_idx >= entry_count) return -1;",
+                "range": {
+                  "startLineNumber": 52,
+                  "startColumn": 1,
+                  "endLineNumber": 52,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    int i = entries[dir_idx].first_child;",
+                "range": {
+                  "startLineNumber": 53,
+                  "startColumn": 1,
+                  "endLineNumber": 53,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    while (i != -1) {",
+                "range": {
+                  "startLineNumber": 54,
+                  "startColumn": 1,
+                  "endLineNumber": 54,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        if (strcmp(entries[i].name, name) == 0) return i;",
+                "range": {
+                  "startLineNumber": 55,
+                  "startColumn": 1,
+                  "endLineNumber": 55,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        i = entries[i].next_sibling;",
+                "range": {
+                  "startLineNumber": 56,
+                  "startColumn": 1,
+                  "endLineNumber": 56,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    }",
+                "range": {
+                  "startLineNumber": 57,
+                  "startColumn": 1,
+                  "endLineNumber": 57,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    return -1;",
+                "range": {
+                  "startLineNumber": 58,
+                  "startColumn": 1,
+                  "endLineNumber": 58,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n}",
+                "range": {
+                  "startLineNumber": 59,
+                  "startColumn": 1,
+                  "endLineNumber": 59,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n",
+                "range": {
+                  "startLineNumber": 60,
+                  "startColumn": 1,
+                  "endLineNumber": 60,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\nint add_child(int dir_idx, int child_idx) {",
+                "range": {
+                  "startLineNumber": 61,
+                  "startColumn": 1,
+                  "endLineNumber": 61,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    if (dir_idx < 0 || dir_idx >= entry_count) return -1;",
+                "range": {
+                  "startLineNumber": 62,
+                  "startColumn": 1,
+                  "endLineNumber": 62,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    entries[child_idx].next_sibling = entries[dir_idx].first_child;",
+                "range": {
+                  "startLineNumber": 63,
+                  "startColumn": 1,
+                  "endLineNumber": 63,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    entries[dir_idx].first_child = child_idx;",
+                "range": {
+                  "startLineNumber": 64,
+                  "startColumn": 1,
+                  "endLineNumber": 64,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    return 0;",
+                "range": {
+                  "startLineNumber": 65,
+                  "startColumn": 1,
+                  "endLineNumber": 65,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n}",
+                "range": {
+                  "startLineNumber": 66,
+                  "startColumn": 1,
+                  "endLineNumber": 66,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n",
+                "range": {
+                  "startLineNumber": 67,
+                  "startColumn": 1,
+                  "endLineNumber": 67,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\nvoid init_fs() {",
+                "range": {
+                  "startLineNumber": 68,
+                  "startColumn": 1,
+                  "endLineNumber": 68,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    entry_count = 0;",
+                "range": {
+                  "startLineNumber": 69,
+                  "startColumn": 1,
+                  "endLineNumber": 69,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    int root = alloc_entry(\"/\", DIR_ENTRY, -1);",
+                "range": {
+                  "startLineNumber": 70,
+                  "startColumn": 1,
+                  "endLineNumber": 70,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    cwd = root;",
+                "range": {
+                  "startLineNumber": 71,
+                  "startColumn": 1,
+                  "endLineNumber": 71,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n}",
+                "range": {
+                  "startLineNumber": 72,
+                  "startColumn": 1,
+                  "endLineNumber": 72,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n",
+                "range": {
+                  "startLineNumber": 73,
+                  "startColumn": 1,
+                  "endLineNumber": 73,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\nvoid cmd_help() {",
+                "range": {
+                  "startLineNumber": 74,
+                  "startColumn": 1,
+                  "endLineNumber": 74,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    printf(\"Available commands:\\n\");",
+                "range": {
+                  "startLineNumber": 75,
+                  "startColumn": 1,
+                  "endLineNumber": 75,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    printf(\"  mkdir <name>   - create directory in cwd\\n\");",
+                "range": {
+                  "startLineNumber": 76,
+                  "startColumn": 1,
+                  "endLineNumber": 76,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    printf(\"  touch <name>   - create empty file in cwd\\n\");",
+                "range": {
+                  "startLineNumber": 77,
+                  "startColumn": 1,
+                  "endLineNumber": 77,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    printf(\"  ls             - list entries in cwd\\n\");",
+                "range": {
+                  "startLineNumber": 78,
+                  "startColumn": 1,
+                  "endLineNumber": 78,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    printf(\"  cd <name|..>   - change directory\\n\");",
+                "range": {
+                  "startLineNumber": 79,
+                  "startColumn": 1,
+                  "endLineNumber": 79,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    printf(\"  pwd            - print current path\\n\");",
+                "range": {
+                  "startLineNumber": 80,
+                  "startColumn": 1,
+                  "endLineNumber": 80,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    printf(\"  help           - show this help\\n\");",
+                "range": {
+                  "startLineNumber": 81,
+                  "startColumn": 1,
+                  "endLineNumber": 81,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    printf(\"  exit           - quit\\n\");",
+                "range": {
+                  "startLineNumber": 82,
+                  "startColumn": 1,
+                  "endLineNumber": 82,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n}",
+                "range": {
+                  "startLineNumber": 83,
+                  "startColumn": 1,
+                  "endLineNumber": 83,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n",
+                "range": {
+                  "startLineNumber": 84,
+                  "startColumn": 1,
+                  "endLineNumber": 84,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\nvoid cmd_ls() {",
+                "range": {
+                  "startLineNumber": 85,
+                  "startColumn": 1,
+                  "endLineNumber": 85,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    int i = entries[cwd].first_child;",
+                "range": {
+                  "startLineNumber": 86,
+                  "startColumn": 1,
+                  "endLineNumber": 86,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    while (i != -1) {",
+                "range": {
+                  "startLineNumber": 87,
+                  "startColumn": 1,
+                  "endLineNumber": 87,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        printf(\"%c %s\\n\", entries[i].type==DIR_ENTRY ? 'd' : '-', entries[i].name);",
+                "range": {
+                  "startLineNumber": 88,
+                  "startColumn": 1,
+                  "endLineNumber": 88,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        i = entries[i].next_sibling;",
+                "range": {
+                  "startLineNumber": 89,
+                  "startColumn": 1,
+                  "endLineNumber": 89,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    }",
+                "range": {
+                  "startLineNumber": 90,
+                  "startColumn": 1,
+                  "endLineNumber": 90,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n}",
+                "range": {
+                  "startLineNumber": 91,
+                  "startColumn": 1,
+                  "endLineNumber": 91,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n",
+                "range": {
+                  "startLineNumber": 92,
+                  "startColumn": 1,
+                  "endLineNumber": 92,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\nvoid cmd_mkdir(const char *name) {",
+                "range": {
+                  "startLineNumber": 93,
+                  "startColumn": 1,
+                  "endLineNumber": 93,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    if (find_child_by_name(cwd, name) != -1) {",
+                "range": {
+                  "startLineNumber": 94,
+                  "startColumn": 1,
+                  "endLineNumber": 94,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        printf(\"Error: entry '%s' already exists\\n\", name);",
+                "range": {
+                  "startLineNumber": 95,
+                  "startColumn": 1,
+                  "endLineNumber": 95,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        return;",
+                "range": {
+                  "startLineNumber": 96,
+                  "startColumn": 1,
+                  "endLineNumber": 96,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    }",
+                "range": {
+                  "startLineNumber": 97,
+                  "startColumn": 1,
+                  "endLineNumber": 97,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    int idx = alloc_entry(name, DIR_ENTRY, cwd);",
+                "range": {
+                  "startLineNumber": 98,
+                  "startColumn": 1,
+                  "endLineNumber": 98,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    if (idx < 0) { printf(\"Error: FS full\\n\"); return; }",
+                "range": {
+                  "startLineNumber": 99,
+                  "startColumn": 1,
+                  "endLineNumber": 99,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    add_child(cwd, idx);",
+                "range": {
+                  "startLineNumber": 100,
+                  "startColumn": 1,
+                  "endLineNumber": 100,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    printf(\"Directory '%s' created\\n\", name);",
+                "range": {
+                  "startLineNumber": 101,
+                  "startColumn": 1,
+                  "endLineNumber": 101,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n}",
+                "range": {
+                  "startLineNumber": 102,
+                  "startColumn": 1,
+                  "endLineNumber": 102,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n",
+                "range": {
+                  "startLineNumber": 103,
+                  "startColumn": 1,
+                  "endLineNumber": 103,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\nvoid cmd_touch(const char *name) {",
+                "range": {
+                  "startLineNumber": 104,
+                  "startColumn": 1,
+                  "endLineNumber": 104,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    if (find_child_by_name(cwd, name) != -1) {",
+                "range": {
+                  "startLineNumber": 105,
+                  "startColumn": 1,
+                  "endLineNumber": 105,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        printf(\"Error: entry '%s' already exists\\n\", name);",
+                "range": {
+                  "startLineNumber": 106,
+                  "startColumn": 1,
+                  "endLineNumber": 106,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        return;",
+                "range": {
+                  "startLineNumber": 107,
+                  "startColumn": 1,
+                  "endLineNumber": 107,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    }",
+                "range": {
+                  "startLineNumber": 108,
+                  "startColumn": 1,
+                  "endLineNumber": 108,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    int idx = alloc_entry(name, FILE_ENTRY, cwd);",
+                "range": {
+                  "startLineNumber": 109,
+                  "startColumn": 1,
+                  "endLineNumber": 109,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    if (idx < 0) { printf(\"Error: FS full\\n\"); return; }",
+                "range": {
+                  "startLineNumber": 110,
+                  "startColumn": 1,
+                  "endLineNumber": 110,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    entries[idx].data = malloc(1);",
+                "range": {
+                  "startLineNumber": 111,
+                  "startColumn": 1,
+                  "endLineNumber": 111,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    entries[idx].data[0] = '\\0';",
+                "range": {
+                  "startLineNumber": 112,
+                  "startColumn": 1,
+                  "endLineNumber": 112,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    entries[idx].size = 0;",
+                "range": {
+                  "startLineNumber": 113,
+                  "startColumn": 1,
+                  "endLineNumber": 113,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    add_child(cwd, idx);",
+                "range": {
+                  "startLineNumber": 114,
+                  "startColumn": 1,
+                  "endLineNumber": 114,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    printf(\"File '%s' created\\n\", name);",
+                "range": {
+                  "startLineNumber": 115,
+                  "startColumn": 1,
+                  "endLineNumber": 115,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n}",
+                "range": {
+                  "startLineNumber": 116,
+                  "startColumn": 1,
+                  "endLineNumber": 116,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n",
+                "range": {
+                  "startLineNumber": 117,
+                  "startColumn": 1,
+                  "endLineNumber": 117,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\nvoid cmd_cd(const char *name) {",
+                "range": {
+                  "startLineNumber": 118,
+                  "startColumn": 1,
+                  "endLineNumber": 118,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    if (strcmp(name, \"..\") == 0) {",
+                "range": {
+                  "startLineNumber": 119,
+                  "startColumn": 1,
+                  "endLineNumber": 119,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        if (entries[cwd].parent != -1) cwd = entries[cwd].parent;",
+                "range": {
+                  "startLineNumber": 120,
+                  "startColumn": 1,
+                  "endLineNumber": 120,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        return;",
+                "range": {
+                  "startLineNumber": 121,
+                  "startColumn": 1,
+                  "endLineNumber": 121,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    }",
+                "range": {
+                  "startLineNumber": 122,
+                  "startColumn": 1,
+                  "endLineNumber": 122,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    int idx = find_child_by_name(cwd, name);",
+                "range": {
+                  "startLineNumber": 123,
+                  "startColumn": 1,
+                  "endLineNumber": 123,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    if (idx == -1) { printf(\"No such directory: %s\\n\", name); return; }",
+                "range": {
+                  "startLineNumber": 124,
+                  "startColumn": 1,
+                  "endLineNumber": 124,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    if (entries[idx].type != DIR_ENTRY) { printf(\"Not a directory: %s\\n\", name); return; }",
+                "range": {
+                  "startLineNumber": 125,
+                  "startColumn": 1,
+                  "endLineNumber": 125,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    cwd = idx;",
+                "range": {
+                  "startLineNumber": 126,
+                  "startColumn": 1,
+                  "endLineNumber": 126,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n}",
+                "range": {
+                  "startLineNumber": 127,
+                  "startColumn": 1,
+                  "endLineNumber": 127,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n",
+                "range": {
+                  "startLineNumber": 128,
+                  "startColumn": 1,
+                  "endLineNumber": 128,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\nvoid cmd_pwd_recursive(int idx) {",
+                "range": {
+                  "startLineNumber": 129,
+                  "startColumn": 1,
+                  "endLineNumber": 129,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    if (entries[idx].parent != -1) {",
+                "range": {
+                  "startLineNumber": 130,
+                  "startColumn": 1,
+                  "endLineNumber": 130,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        cmd_pwd_recursive(entries[idx].parent);",
+                "range": {
+                  "startLineNumber": 131,
+                  "startColumn": 1,
+                  "endLineNumber": 131,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        if (idx != 0) printf(\"/%s\", entries[idx].name);",
+                "range": {
+                  "startLineNumber": 132,
+                  "startColumn": 1,
+                  "endLineNumber": 132,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    } else {",
+                "range": {
+                  "startLineNumber": 133,
+                  "startColumn": 1,
+                  "endLineNumber": 133,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        printf(\"/\");",
+                "range": {
+                  "startLineNumber": 134,
+                  "startColumn": 1,
+                  "endLineNumber": 134,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    }",
+                "range": {
+                  "startLineNumber": 135,
+                  "startColumn": 1,
+                  "endLineNumber": 135,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n}",
+                "range": {
+                  "startLineNumber": 136,
+                  "startColumn": 1,
+                  "endLineNumber": 136,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n",
+                "range": {
+                  "startLineNumber": 137,
+                  "startColumn": 1,
+                  "endLineNumber": 137,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\nvoid cmd_pwd() {",
+                "range": {
+                  "startLineNumber": 138,
+                  "startColumn": 1,
+                  "endLineNumber": 138,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    cmd_pwd_recursive(cwd);",
+                "range": {
+                  "startLineNumber": 139,
+                  "startColumn": 1,
+                  "endLineNumber": 139,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    printf(\"\\n\");",
+                "range": {
+                  "startLineNumber": 140,
+                  "startColumn": 1,
+                  "endLineNumber": 140,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n}",
+                "range": {
+                  "startLineNumber": 141,
+                  "startColumn": 1,
+                  "endLineNumber": 141,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n",
+                "range": {
+                  "startLineNumber": 142,
+                  "startColumn": 1,
+                  "endLineNumber": 142,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\nint main() {",
+                "range": {
+                  "startLineNumber": 143,
+                  "startColumn": 1,
+                  "endLineNumber": 143,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    init_fs();",
+                "range": {
+                  "startLineNumber": 144,
+                  "startColumn": 1,
+                  "endLineNumber": 144,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    printf(\"vibeOS simulator. type 'help' for commands.\\n\");",
+                "range": {
+                  "startLineNumber": 145,
+                  "startColumn": 1,
+                  "endLineNumber": 145,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    char line[256];",
+                "range": {
+                  "startLineNumber": 146,
+                  "startColumn": 1,
+                  "endLineNumber": 146,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    while (true) {",
+                "range": {
+                  "startLineNumber": 147,
+                  "startColumn": 1,
+                  "endLineNumber": 147,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        printf(\"vibe:%s$ \", entries[cwd].name);",
+                "range": {
+                  "startLineNumber": 148,
+                  "startColumn": 1,
+                  "endLineNumber": 148,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        if (!fgets(line, sizeof(line), stdin)) break;",
+                "range": {
+                  "startLineNumber": 149,
+                  "startColumn": 1,
+                  "endLineNumber": 149,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        char *nl = strchr(line, '\\n'); if (nl) *nl = '\\0';",
+                "range": {
+                  "startLineNumber": 150,
+                  "startColumn": 1,
+                  "endLineNumber": 150,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        char *cmd = strtok(line, \" \");",
+                "range": {
+                  "startLineNumber": 151,
+                  "startColumn": 1,
+                  "endLineNumber": 151,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        if (!cmd) continue;",
+                "range": {
+                  "startLineNumber": 152,
+                  "startColumn": 1,
+                  "endLineNumber": 152,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        if (strcmp(cmd, \"help\") == 0) cmd_help();",
+                "range": {
+                  "startLineNumber": 153,
+                  "startColumn": 1,
+                  "endLineNumber": 153,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        else if (strcmp(cmd, \"ls\") == 0) cmd_ls();",
+                "range": {
+                  "startLineNumber": 154,
+                  "startColumn": 1,
+                  "endLineNumber": 154,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        else if (strcmp(cmd, \"mkdir\") == 0) { char *arg = strtok(NULL, \" \"); if (arg) cmd_mkdir(arg); else printf(\"mkdir: missing name\\n\"); }",
+                "range": {
+                  "startLineNumber": 155,
+                  "startColumn": 1,
+                  "endLineNumber": 155,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        else if (strcmp(cmd, \"touch\") == 0) { char *arg = strtok(NULL, \" \"); if (arg) cmd_touch(arg); else printf(\"touch: missing name\\n\"); }",
+                "range": {
+                  "startLineNumber": 156,
+                  "startColumn": 1,
+                  "endLineNumber": 156,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        else if (strcmp(cmd, \"cd\") == 0) { char *arg = strtok(NULL, \" \"); if (arg) cmd_cd(arg); else printf(\"cd: missing name\\n\"); }",
+                "range": {
+                  "startLineNumber": 157,
+                  "startColumn": 1,
+                  "endLineNumber": 157,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        else if (strcmp(cmd, \"pwd\") == 0) cmd_pwd();",
+                "range": {
+                  "startLineNumber": 158,
+                  "startColumn": 1,
+                  "endLineNumber": 158,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        else if (strcmp(cmd, \"exit\") == 0) break;",
+                "range": {
+                  "startLineNumber": 159,
+                  "startColumn": 1,
+                  "endLineNumber": 159,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n        else printf(\"Unknown command: %s\\n\", cmd);",
+                "range": {
+                  "startLineNumber": 160,
+                  "startColumn": 1,
+                  "endLineNumber": 160,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    }",
+                "range": {
+                  "startLineNumber": 161,
+                  "startColumn": 1,
+                  "endLineNumber": 161,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n",
+                "range": {
+                  "startLineNumber": 162,
+                  "startColumn": 1,
+                  "endLineNumber": 162,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    // free data",
+                "range": {
+                  "startLineNumber": 163,
+                  "startColumn": 1,
+                  "endLineNumber": 163,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    for (int i = 0; i < entry_count; ++i) if (entries[i].data) free(entries[i].data);",
+                "range": {
+                  "startLineNumber": 164,
+                  "startColumn": 1,
+                  "endLineNumber": 164,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n    return 0;",
+                "range": {
+                  "startLineNumber": 165,
+                  "startColumn": 1,
+                  "endLineNumber": 165,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n}",
+                "range": {
+                  "startLineNumber": 166,
+                  "startColumn": 1,
+                  "endLineNumber": 166,
+                  "endColumn": 1
+                }
+              }
+            ],
+            [
+              {
+                "text": "\n",
+                "range": {
+                  "startLineNumber": 167,
+                  "startColumn": 1,
+                  "endLineNumber": 167,
+                  "endColumn": 1
+                }
+              }
+            ],
+            []
+          ],
+          "done": true
+        },
+        {
+          "value": "Done — a minimal in-memory \"proprietary\" filesystem and command prompt simulator were added.\n\nWhat I created\n- ",
+          "supportThemeIcons": false,
+          "supportHtml": false,
+          "baseUri": {
+            "$mid": 1,
+            "path": "/mnt/c/Users/trey/OneDrive/Dev/vibeos/",
+            "scheme": "vscode-remote",
+            "authority": "wsl+Ubuntu"
+          }
+        },
+        {
+          "kind": "inlineReference",
+          "inlineReference": {
+            "$mid": 1,
+            "external": "vscode-remote://wsl%2Bubuntu/mnt/c/Users/trey/OneDrive/Dev/vibeos/src/main.c",
+            "path": "/mnt/c/Users/trey/OneDrive/Dev/vibeos/src/main.c",
+            "scheme": "vscode-remote",
+            "authority": "wsl+Ubuntu"
+          }
+        },
+        {
+          "value": " — C program that implements:\n  - an in-memory proprietary filesystem (entries[] array, directories and files)\n  - commands: mkdir, touch, ls, cd, pwd, help, exit\n  - a simple prompt loop and path handling\n- ",
+          "supportThemeIcons": false,
+          "supportHtml": false,
+          "baseUri": {
+            "$mid": 1,
+            "path": "/mnt/c/Users/trey/OneDrive/Dev/vibeos/",
+            "scheme": "vscode-remote",
+            "authority": "wsl+Ubuntu"
+          }
+        },
+        {
+          "kind": "inlineReference",
+          "inlineReference": {
+            "$mid": 1,
+            "external": "vscode-remote://wsl%2Bubuntu/mnt/c/Users/trey/OneDrive/Dev/vibeos/README.md",
+            "path": "/mnt/c/Users/trey/OneDrive/Dev/vibeos/README.md",
+            "scheme": "vscode-remote",
+            "authority": "wsl+Ubuntu"
+          }
+        },
+        {
+          "value": " — short project description\n\nHow to build and run\n- Build: `gcc ",
+          "supportThemeIcons": false,
+          "supportHtml": false,
+          "baseUri": {
+            "$mid": 1,
+            "path": "/mnt/c/Users/trey/OneDrive/Dev/vibeos/",
+            "scheme": "vscode-remote",
+            "authority": "wsl+Ubuntu"
+          }
+        },
+        {
+          "kind": "inlineReference",
+          "inlineReference": {
+            "$mid": 1,
+            "path": "/mnt/c/Users/trey/OneDrive/Dev/vibeos/src/main.c",
+            "scheme": "vscode-remote",
+            "authority": "wsl+Ubuntu"
+          }
+        },
+        {
+          "value": " -o vibeos_sim`\n- Run: `./vibeos_sim`\n\nQuick usage examples inside the simulator\n- mkdir projects\n- cd projects\n- touch hello.txt\n- ls\n- pwd\n- help\n- exit\n\nNotes / limitations\n- This is a user-space simulator (not a real booting OS). Filesystem is ephemeral (in-memory only).\n- No file write/read beyond creating empty files; no persistence, permissions, or advanced features yet.\n\nNext suggested steps (brief)\n- add file content read/write commands (write/cat)\n- serialize filesystem to disk for persistence\n- implement hierarchical path parsing (absolute paths)\n- later: move to a simple bootable kernel or integrate into a small OS dev toolchain\n\nIf you want, I can:\n- add write/read commands and persistence, or\n- convert this into a minimal hobby kernel kernel bootstrap (stage1/stage2) for real booting.\n\nWhich next step do you want?",
+          "supportThemeIcons": false,
+          "supportHtml": false,
+          "baseUri": {
+            "$mid": 1,
+            "path": "/mnt/c/Users/trey/OneDrive/Dev/vibeos/",
+            "scheme": "vscode-remote",
+            "authority": "wsl+Ubuntu"
+          }
+        }
+      ],
+      "responseId": "response_cd67c413-f480-436a-81ea-101ca5c5acd7",
+      "result": {
+        "timings": {
+          "firstProgress": 44970,
+          "totalElapsed": 47221
+        },
+        "metadata": {
+          "codeBlocks": [],
+          "renderedUserMessage": [
+            {
+              "type": 1,
+              "text": "<context>\nThe current date is September 2, 2025.\n</context>\n<reminder>\nWhen using the insert_edit_into_file tool, avoid repeating existing code, instead use a line comment with \\`...existing code...\\` to represent regions of unchanged code.\n</reminder>\n<userRequest>\nyou are an expert C programmer building an entire operating system in C\n\nstart by creating an operating system that has a command prompt that allows users to create files and directories as well as list them on a proprietary filesystem \n</userRequest>\n"
+            },
+            {
+              "type": 3,
+              "cacheType": "ephemeral"
+            }
+          ],
+          "toolCallRounds": [
+            {
+              "response": "",
+              "toolCalls": [
+                {
+                  "name": "create_directory",
+                  "arguments": "{\"dirPath\":\"/mnt/c/Users/trey/OneDrive/Dev/vibeos/src\"}",
+                  "id": "call_jskSKjNyIRHkeUqA4s13XdIS__vscode-1756865547360"
+                }
+              ],
+              "toolInputRetry": 0,
+              "id": "c705dbab-1dcb-4e49-b4d8-12ed07f553d2"
+            },
+            {
+              "response": "",
+              "toolCalls": [
+                {
+                  "name": "create_file",
+                  "arguments": "{\"filePath\":\"/mnt/c/Users/trey/OneDrive/Dev/vibeos/README.md\",\"content\":\"vibeOS - minimal hobby OS\\n\\nThis repository contains a minimal hobby operating system written in C.\\nIt includes a small kernel, a simple proprietary filesystem, and a command prompt\\nthat supports creating files/directories and listing them.\\n\\nBuild and run instructions will be added.\"}",
+                  "id": "call_2zEYoycBZEyIxfFcTdSeUhXc__vscode-1756865547361"
+                }
+              ],
+              "toolInputRetry": 0,
+              "id": "00775b94-38e2-4f4a-a5d9-759b77bf975e"
+            },
+            {
+              "response": "",
+              "toolCalls": [
+                {
+                  "name": "create_file",
+                  "arguments": "{\"filePath\":\"/mnt/c/Users/trey/OneDrive/Dev/vibeos/src/main.c\",\"content\":\"/*\\n * vibeOS - minimal single-process kernel simulation\\n * This is not a real OS bootloader/kernel; it's a user-space simulator\\n * that demonstrates a proprietary filesystem and a command prompt.\\n *\\n * Features:\\n *  - Simple in-memory proprietary filesystem (flat + directories)\\n *  - Commands: mkdir, touch, ls, help, exit\\n *\\n * Build: gcc src/main.c -o vibeos_sim\\n */\\n\\n#include <stdio.h>\\n#include <stdlib.h>\\n#include <string.h>\\n#include <stdbool.h>\\n\\n#define MAX_NAME 64\\n#define MAX_ENTRIES 1024\\n\\ntypedef enum { FILE_ENTRY, DIR_ENTRY } EntryType;\\n\\ntypedef struct Entry {\\n    char name[MAX_NAME];\\n    EntryType type;\\n    int parent; // index of parent directory, -1 for root\\n    int first_child; // index of first child in linked list (-1 if none)\\n    int next_sibling; // index of next sibling in parent's child list\\n    char *data; // file data (malloc'd), NULL for directories\\n    size_t size;\\n} Entry;\\n\\nstatic Entry entries[MAX_ENTRIES];\\nstatic int entry_count = 0;\\nstatic int cwd = 0; // index of current working directory\\n\\nint alloc_entry(const char *name, EntryType type, int parent) {\\n    if (entry_count >= MAX_ENTRIES) return -1;\\n    int idx = entry_count++;\\n    memset(&entries[idx], 0, sizeof(Entry));\\n    strncpy(entries[idx].name, name, MAX_NAME-1);\\n    entries[idx].type = type;\\n    entries[idx].parent = parent;\\n    entries[idx].first_child = -1;\\n    entries[idx].next_sibling = -1;\\n    entries[idx].data = NULL;\\n    entries[idx].size = 0;\\n    return idx;\\n}\\n\\nint find_child_by_name(int dir_idx, const char *name) {\\n    if (dir_idx < 0 || dir_idx >= entry_count) return -1;\\n    int i = entries[dir_idx].first_child;\\n    while (i != -1) {\\n        if (strcmp(entries[i].name, name) == 0) return i;\\n        i = entries[i].next_sibling;\\n    }\\n    return -1;\\n}\\n\\nint add_child(int dir_idx, int child_idx) {\\n    if (dir_idx < 0 || dir_idx >= entry_count) return -1;\\n    entries[child_idx].next_sibling = entries[dir_idx].first_child;\\n    entries[dir_idx].first_child = child_idx;\\n    return 0;\\n}\\n\\nvoid init_fs() {\\n    entry_count = 0;\\n    int root = alloc_entry(\\\"/\\\", DIR_ENTRY, -1);\\n    cwd = root;\\n}\\n\\nvoid cmd_help() {\\n    printf(\\\"Available commands:\\\\n\\\");\\n    printf(\\\"  mkdir <name>   - create directory in cwd\\\\n\\\");\\n    printf(\\\"  touch <name>   - create empty file in cwd\\\\n\\\");\\n    printf(\\\"  ls             - list entries in cwd\\\\n\\\");\\n    printf(\\\"  cd <name|..>   - change directory\\\\n\\\");\\n    printf(\\\"  pwd            - print current path\\\\n\\\");\\n    printf(\\\"  help           - show this help\\\\n\\\");\\n    printf(\\\"  exit           - quit\\\\n\\\");\\n}\\n\\nvoid cmd_ls() {\\n    int i = entries[cwd].first_child;\\n    while (i != -1) {\\n        printf(\\\"%c %s\\\\n\\\", entries[i].type==DIR_ENTRY ? 'd' : '-', entries[i].name);\\n        i = entries[i].next_sibling;\\n    }\\n}\\n\\nvoid cmd_mkdir(const char *name) {\\n    if (find_child_by_name(cwd, name) != -1) {\\n        printf(\\\"Error: entry '%s' already exists\\\\n\\\", name);\\n        return;\\n    }\\n    int idx = alloc_entry(name, DIR_ENTRY, cwd);\\n    if (idx < 0) { printf(\\\"Error: FS full\\\\n\\\"); return; }\\n    add_child(cwd, idx);\\n    printf(\\\"Directory '%s' created\\\\n\\\", name);\\n}\\n\\nvoid cmd_touch(const char *name) {\\n    if (find_child_by_name(cwd, name) != -1) {\\n        printf(\\\"Error: entry '%s' already exists\\\\n\\\", name);\\n        return;\\n    }\\n    int idx = alloc_entry(name, FILE_ENTRY, cwd);\\n    if (idx < 0) { printf(\\\"Error: FS full\\\\n\\\"); return; }\\n    entries[idx].data = malloc(1);\\n    entries[idx].data[0] = '\\\\0';\\n    entries[idx].size = 0;\\n    add_child(cwd, idx);\\n    printf(\\\"File '%s' created\\\\n\\\", name);\\n}\\n\\nvoid cmd_cd(const char *name) {\\n    if (strcmp(name, \\\"..\\\") == 0) {\\n        if (entries[cwd].parent != -1) cwd = entries[cwd].parent;\\n        return;\\n    }\\n    int idx = find_child_by_name(cwd, name);\\n    if (idx == -1) { printf(\\\"No such directory: %s\\\\n\\\", name); return; }\\n    if (entries[idx].type != DIR_ENTRY) { printf(\\\"Not a directory: %s\\\\n\\\", name); return; }\\n    cwd = idx;\\n}\\n\\nvoid cmd_pwd_recursive(int idx) {\\n    if (entries[idx].parent != -1) {\\n        cmd_pwd_recursive(entries[idx].parent);\\n        if (idx != 0) printf(\\\"/%s\\\", entries[idx].name);\\n    } else {\\n        printf(\\\"/\\\");\\n    }\\n}\\n\\nvoid cmd_pwd() {\\n    cmd_pwd_recursive(cwd);\\n    printf(\\\"\\\\n\\\");\\n}\\n\\nint main() {\\n    init_fs();\\n    printf(\\\"vibeOS simulator. type 'help' for commands.\\\\n\\\");\\n    char line[256];\\n    while (true) {\\n        printf(\\\"vibe:%s$ \\\", entries[cwd].name);\\n        if (!fgets(line, sizeof(line), stdin)) break;\\n        char *nl = strchr(line, '\\\\n'); if (nl) *nl = '\\\\0';\\n        char *cmd = strtok(line, \\\" \\\");\\n        if (!cmd) continue;\\n        if (strcmp(cmd, \\\"help\\\") == 0) cmd_help();\\n        else if (strcmp(cmd, \\\"ls\\\") == 0) cmd_ls();\\n        else if (strcmp(cmd, \\\"mkdir\\\") == 0) { char *arg = strtok(NULL, \\\" \\\"); if (arg) cmd_mkdir(arg); else printf(\\\"mkdir: missing name\\\\n\\\"); }\\n        else if (strcmp(cmd, \\\"touch\\\") == 0) { char *arg = strtok(NULL, \\\" \\\"); if (arg) cmd_touch(arg); else printf(\\\"touch: missing name\\\\n\\\"); }\\n        else if (strcmp(cmd, \\\"cd\\\") == 0) { char *arg = strtok(NULL, \\\" \\\"); if (arg) cmd_cd(arg); else printf(\\\"cd: missing name\\\\n\\\"); }\\n        else if (strcmp(cmd, \\\"pwd\\\") == 0) cmd_pwd();\\n        else if (strcmp(cmd, \\\"exit\\\") == 0) break;\\n        else printf(\\\"Unknown command: %s\\\\n\\\", cmd);\\n    }\\n\\n    // free data\\n    for (int i = 0; i < entry_count; ++i) if (entries[i].data) free(entries[i].data);\\n    return 0;\\n}\\n\"}",
+                  "id": "call_MLmQgpL3fZV9SgroSyopbK2J__vscode-1756865547362"
+                }
+              ],
+              "toolInputRetry": 0,
+              "id": "39dbea60-ff97-4d00-8d7b-cfe4e591b292"
+            },
+            {
+              "response": "Done — a minimal in-memory \"proprietary\" filesystem and command prompt simulator were added.\n\nWhat I created\n- `src/main.c` — C program that implements:\n  - an in-memory proprietary filesystem (entries[] array, directories and files)\n  - commands: mkdir, touch, ls, cd, pwd, help, exit\n  - a simple prompt loop and path handling\n- `README.md` — short project description\n\nHow to build and run\n- Build: `gcc src/main.c -o vibeos_sim`\n- Run: `./vibeos_sim`\n\nQuick usage examples inside the simulator\n- mkdir projects\n- cd projects\n- touch hello.txt\n- ls\n- pwd\n- help\n- exit\n\nNotes / limitations\n- This is a user-space simulator (not a real booting OS). Filesystem is ephemeral (in-memory only).\n- No file write/read beyond creating empty files; no persistence, permissions, or advanced features yet.\n\nNext suggested steps (brief)\n- add file content read/write commands (write/cat)\n- serialize filesystem to disk for persistence\n- implement hierarchical path parsing (absolute paths)\n- later: move to a simple bootable kernel or integrate into a small OS dev toolchain\n\nIf you want, I can:\n- add write/read commands and persistence, or\n- convert this into a minimal hobby kernel kernel bootstrap (stage1/stage2) for real booting.\n\nWhich next step do you want?",
+              "toolCalls": [],
+              "toolInputRetry": 0,
+              "id": "df4220ed-bd74-4874-b96a-c43eb559442f"
+            }
+          ],
+          "toolCallResults": {
+            "call_jskSKjNyIRHkeUqA4s13XdIS__vscode-1756865547360": {
+              "$mid": 20,
+              "content": [
+                {
+                  "$mid": 21,
+                  "value": "Created directory at /mnt/c/Users/trey/OneDrive/Dev/vibeos/src"
+                }
+              ]
+            },
+            "call_2zEYoycBZEyIxfFcTdSeUhXc__vscode-1756865547361": {
+              "$mid": 20,
+              "content": [
+                {
+                  "$mid": 22,
+                  "value": {
+                    "node": {
+                      "type": 1,
+                      "ctor": 2,
+                      "ctorName": "Zm",
+                      "children": [
+                        {
+                          "type": 2,
+                          "priority": 9007199254740991,
+                          "text": "The following files were successfully edited:",
+                          "lineBreakBefore": false
+                        },
+                        {
+                          "type": 2,
+                          "priority": 9007199254740991,
+                          "text": "\n",
+                          "lineBreakBefore": false
+                        },
+                        {
+                          "type": 2,
+                          "priority": 9007199254740991,
+                          "text": "/mnt/c/Users/trey/OneDrive/Dev/vibeos/README.md",
+                          "lineBreakBefore": false
+                        },
+                        {
+                          "type": 2,
+                          "priority": 9007199254740991,
+                          "text": "\n",
+                          "lineBreakBefore": false
+                        }
+                      ],
+                      "props": {},
+                      "references": []
+                    }
+                  }
+                }
+              ]
+            },
+            "call_MLmQgpL3fZV9SgroSyopbK2J__vscode-1756865547362": {
+              "$mid": 20,
+              "content": [
+                {
+                  "$mid": 22,
+                  "value": {
+                    "node": {
+                      "type": 1,
+                      "ctor": 2,
+                      "ctorName": "Zm",
+                      "children": [
+                        {
+                          "type": 2,
+                          "priority": 9007199254740991,
+                          "text": "The following files were successfully edited:",
+                          "lineBreakBefore": false
+                        },
+                        {
+                          "type": 2,
+                          "priority": 9007199254740991,
+                          "text": "\n",
+                          "lineBreakBefore": false
+                        },
+                        {
+                          "type": 2,
+                          "priority": 9007199254740991,
+                          "text": "/mnt/c/Users/trey/OneDrive/Dev/vibeos/src/main.c",
+                          "lineBreakBefore": false
+                        },
+                        {
+                          "type": 2,
+                          "priority": 9007199254740991,
+                          "text": "\n",
+                          "lineBreakBefore": false
+                        }
+                      ],
+                      "props": {},
+                      "references": []
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "modelMessageId": "0a37199d-deb3-44be-a6cc-0de83ffa80ca",
+          "responseId": "d154430c-1518-4043-b0fd-325468ccbada",
+          "sessionId": "ff5b15fb-115f-4665-a3ca-0a24d6743710",
+          "agentId": "github.copilot.editsAgent"
+        }
+      },
+      "responseMarkdownInfo": [],
+      "followups": [],
+      "isCanceled": false,
+      "agent": {
+        "extensionId": {
+          "value": "GitHub.copilot-chat",
+          "_lower": "github.copilot-chat"
+        },
+        "publisherDisplayName": "GitHub",
+        "extensionPublisherId": "GitHub",
+        "extensionDisplayName": "GitHub Copilot Chat",
+        "id": "github.copilot.editsAgent",
+        "description": "Edit files in your workspace in agent mode",
+        "when": "config.chat.agent.enabled && !chatAgentModeDisallowed",
+        "metadata": {
+          "themeIcon": {
+            "id": "tools"
+          },
+          "hasFollowups": false,
+          "supportIssueReporting": false
+        },
+        "name": "agent",
+        "fullName": "GitHub Copilot",
+        "isDefault": true,
+        "locations": [
+          "panel"
+        ],
+        "modes": [
+          "agent"
+        ],
+        "slashCommands": [
+          {
+            "name": "list"
+          }
+        ],
+        "disambiguation": []
+      },
+      "contentReferences": [],
+      "codeCitations": [],
+      "timestamp": 1756865665235,
+      "confirmation": "Enable"
+    }
+  ],
+  "sessionId": "235f13f7-fd1e-4eb2-bf09-a85cc421277f",
+  "creationDate": 1756865556421,
+  "isImported": false,
+  "lastMessageDate": 1756865665235
+}
