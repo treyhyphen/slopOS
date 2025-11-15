@@ -6,6 +6,26 @@ A hilariously over-engineered hobby operating system that boots on real hardware
 
 Think of it as "My First Operating System" meets "I Have Too Much Free Time". Features include a filesystem that forgets everything when you turn it off, a GUI made of ASCII characters, and enough features to make you wonder "but why though?"
 
+> *"BUT WHY?!"* ❓
+
+idk ... for funsies? Here's the original post I wrote about it:
+
+> I saw a meme of Microsoft bragging about how it uses AI to write 30% of its code now alongside a headline about some recent Windows update that's causing shit to crash. In my head I was like, "Do you want Windows ME again? Because this is how you get Windows ME"
+>
+> ... but then that got me thinking: How hard would it be to AI slop together my own operating system?
+> 
+> I know nothing about the C programming language. But I was able to do it in about ~20 minutes, complete with a bootable ISO.
+> 
+> First iteration just created a "simulator" that was basically a command line executable that would "look" like an operating system when you ran it.
+> 
+> Second iteration, I had it try to add a window manager GUI, but it really just wound up creating an ASCII text/terminal "GUI". 
+> 
+> Then I had it add multiuser support, complete with password verification and a very basic permissions structure. This iteration made me laugh because it renamed it to "vibeOS v2.0 - Secure Operating System" haha
+> 
+> Last iteration was the big one: make this into a real operating system that I could boot with a VM. It figured out it needed a bootloader and a kernel and created both of them. Then it installed QEMU on its own to test it and that actually worked. Last step it figured out it needed to create a bootable ISO. Which it did.
+> 
+> So I loaded it up in VirtualBox and sure enough, I have a real operating system. In about ~20 minutes of yapping at the robots lol ... this is so ridiculous.
+
 ## 🎪 What Makes slopOS Special?
 
 - ✨ **Boots on REAL hardware!** (Your BIOS will be very confused)
