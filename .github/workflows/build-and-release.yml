@@ -68,35 +68,12 @@ jobs:
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "Building version: $VERSION"
     
-    - name: Create release on tag
+    # Release creation is handled by build-iso.yml workflow
+    # This workflow only uploads the simulator as an artifact
+    - name: Upload simulator artifact
       if: startsWith(github.ref, 'refs/tags/')
-      uses: softprops/action-gh-release@v1
+      uses: actions/upload-artifact@v4
       with:
-        files: |
-          slopos_sim
-        draft: false
-        prerelease: false
-        generate_release_notes: true
-        body: |
-          ## slopOS Release ${{ steps.version.outputs.version }}
-          
-          ### What's Included
-          - **slopos_sim**: User-space simulator binary
-          
-          ### How to Run
-          ```bash
-          chmod +x slopos_sim
-          ./slopos_sim
-          ```
-          
-          ### Default Login
-          - Username: `admin`
-          - Password: `slopOS123`
-          
-          ### Features
-          - Multi-user authentication system
-          - File system with directories
-          - Text-based window manager
-          - Admin and user role management
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        name: slopos-simulator-${{ steps.version.outputs.version }}
+        path: slopos_sim
+        retention-days: 90
