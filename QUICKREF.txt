@@ -1,0 +1,118 @@
+╔════════════════════════════════════════════════════════════════════╗
+║                    slopOS v0.1.0 Quick Reference                   ║
+╚════════════════════════════════════════════════════════════════════╝
+
+┌─ BUILD COMMANDS ──────────────────────────────────────────────────┐
+│ make -f Makefile.simple clean    # Clean build                    │
+│ make -f Makefile.simple all      # Compile kernel                 │
+│ make -f Makefile.simple iso      # Create bootable ISO            │
+│ ./test-full-iso.sh               # Run automated tests            │
+└────────────────────────────────────────────────────────────────────┘
+
+┌─ TESTING ─────────────────────────────────────────────────────────┐
+│ qemu-system-i386 -cdrom slopos.iso -m 32    # Test in QEMU        │
+│ VirtualBox: Mount ISO → Boot (32MB RAM min)                       │
+│ Real Hardware: dd if=slopos.iso of=/dev/sdX bs=4M                 │
+└────────────────────────────────────────────────────────────────────┘
+
+┌─ DEFAULT USERS ───────────────────────────────────────────────────┐
+│ Username: admin      Password: slopOS123    Role: Administrator   │
+│ Username: user       Password: password     Role: Regular User    │
+│                                                                    │
+│ ⚠️  3 attempts maximum - system halts on failure                  │
+└────────────────────────────────────────────────────────────────────┘
+
+┌─ FILESYSTEM COMMANDS ─────────────────────────────────────────────┐
+│ ls                    List directory contents                     │
+│ mkdir <name>          Create new directory                        │
+│ touch <name>          Create new file                             │
+│ cd <name>             Change to directory                         │
+│ cd ..                 Go to parent directory                      │
+│ pwd                   Print working directory                     │
+└────────────────────────────────────────────────────────────────────┘
+
+┌─ USER COMMANDS ───────────────────────────────────────────────────┐
+│ whoami                Show current username and role              │
+│ listusers             List all users (admin only)                 │
+└────────────────────────────────────────────────────────────────────┘
+
+┌─ SYSTEM COMMANDS ─────────────────────────────────────────────────┐
+│ help                  Display all available commands              │
+│ clear                 Clear the screen                            │
+└────────────────────────────────────────────────────────────────────┘
+
+┌─ KEYBOARD CONTROLS ───────────────────────────────────────────────┐
+│ Enter                 Execute command / Submit input              │
+│ Backspace             Delete previous character                  │
+│ Letters/Numbers       Standard input                              │
+└────────────────────────────────────────────────────────────────────┘
+
+┌─ EXAMPLE SESSION ─────────────────────────────────────────────────┐
+│ Username: admin                                                    │
+│ Password: **********                                               │
+│ Login successful! Welcome, admin.                                  │
+│ Administrator privileges granted.                                  │
+│                                                                    │
+│ admin@slopOS:/$ mkdir projects                                     │
+│ Directory created                                                  │
+│ admin@slopOS:/$ cd projects                                        │
+│ admin@slopOS:/projects$ touch main.c                               │
+│ File created                                                       │
+│ admin@slopOS:/projects$ ls                                         │
+│ - main.c                                                           │
+│ admin@slopOS:/projects$ pwd                                        │
+│ //projects                                                         │
+│ admin@slopOS:/projects$ cd ..                                      │
+│ admin@slopOS:/$ whoami                                             │
+│ admin (administrator)                                              │
+└────────────────────────────────────────────────────────────────────┘
+
+┌─ TECHNICAL SPECS ─────────────────────────────────────────────────┐
+│ Architecture:    x86 (32-bit)                                      │
+│ Bootloader:      GRUB (Multiboot)                                 │
+│ Kernel Size:     24 KB                                             │
+│ ISO Size:        5.0 MB                                            │
+│ RAM Required:    32 MB minimum                                     │
+│ Display:         VGA text mode (80x25)                             │
+│ Keyboard:        PS/2 via I/O ports                                │
+│ Filesystem:      In-memory (256 entries max)                       │
+│ Authentication:  SHA256-simple hashing                             │
+└────────────────────────────────────────────────────────────────────┘
+
+┌─ PROJECT FILES ───────────────────────────────────────────────────┐
+│ kernel/kernel.c      Full-featured kernel (~800 lines)            │
+│ boot/boot.s          Multiboot bootloader                         │
+│ src/main.c           OS simulator (945 lines)                     │
+│ Makefile.simple      Build system                                 │
+│ test-full-iso.sh     Automated testing script                     │
+│                                                                    │
+│ README.md            Main documentation                            │
+│ FULL_ISO_GUIDE.md    Detailed usage guide                         │
+│ FEATURE_COMPARISON.md Simulator vs Kernel comparison              │
+└────────────────────────────────────────────────────────────────────┘
+
+┌─ KNOWN LIMITATIONS ───────────────────────────────────────────────┐
+│ • No persistence (changes lost on reboot)                          │
+│ • Maximum 256 filesystem entries                                   │
+│ • No file content storage (metadata only)                          │
+│ • Single-tasking (no multitasking)                                 │
+│ • No networking support                                            │
+│ • US QWERTY keyboard only                                          │
+└────────────────────────────────────────────────────────────────────┘
+
+┌─ TROUBLESHOOTING ─────────────────────────────────────────────────┐
+│ Issue: Keyboard not responding                                     │
+│ Fix:   Wait 2-3 seconds after boot, try pressing keys multiple    │
+│        times                                                       │
+│                                                                    │
+│ Issue: Login fails                                                 │
+│ Fix:   Check spelling (case-sensitive), verify password:          │
+│        admin=slopOS123, user=password                              │
+│                                                                    │
+│ Issue: Black screen                                                │
+│ Fix:   Check VM boot order, verify ISO is mounted                 │
+└────────────────────────────────────────────────────────────────────┘
+
+╔════════════════════════════════════════════════════════════════════╗
+║  For more information, see: README.md and FULL_ISO_GUIDE.md        ║
+╚════════════════════════════════════════════════════════════════════╝

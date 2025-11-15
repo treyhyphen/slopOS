@@ -41,3 +41,5 @@
 *.dwo
 
 *.iso
+*.bin
+slopOS

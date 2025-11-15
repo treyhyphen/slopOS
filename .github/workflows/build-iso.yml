@@ -37,12 +37,13 @@ jobs:
     - name: Check for kernel files
       id: check_kernel
       run: |
-        if [ -d "kernel" ] && [ -d "boot" ] && [ -f "Makefile" ]; then
+        if [ -d "kernel" ] && [ -d "boot" ] && [ -f "Makefile" ] && [ -f "kernel/kernel.c" ] && [ -f "boot/boot.s" ]; then
           echo "kernel_exists=true" >> $GITHUB_OUTPUT
           echo "Kernel source found - will build ISO"
         else
           echo "kernel_exists=false" >> $GITHUB_OUTPUT
           echo "No kernel source found - skipping ISO build"
+          echo "Note: This is normal if you only have the simulator"
         fi
     
     - name: Build kernel
