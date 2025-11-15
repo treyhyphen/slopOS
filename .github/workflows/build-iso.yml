@@ -7,7 +7,7 @@ on:
       - master
     paths:
       - 'boot/**'
-      - 'kernel/**'
+      - 'src/slopos.c'
       - 'Makefile*'
       - '.github/workflows/build-iso.yml'
   workflow_dispatch:
@@ -37,7 +37,7 @@ jobs:
     - name: Check for kernel files
       id: check_kernel
       run: |
-        if [ -d "kernel" ] && [ -d "boot" ] && [ -f "Makefile" ] && [ -f "kernel/kernel.c" ] && [ -f "boot/boot.s" ]; then
+        if [ -d "boot" ] && [ -f "Makefile.simple" ] && [ -f "src/slopos.c" ] && [ -f "boot/boot.s" ]; then
           echo "kernel_exists=true" >> $GITHUB_OUTPUT
           echo "Kernel source found - will build ISO"
         else
