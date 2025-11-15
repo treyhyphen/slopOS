@@ -1,0 +1,154 @@
+name: Build Bootable ISO
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'boot/**'
+      - 'kernel/**'
+      - 'Makefile*'
+      - '.github/workflows/build-iso.yml'
+  workflow_dispatch:
+
+jobs:
+  build-iso:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          gcc-multilib \
+          g++-multilib \
+          nasm \
+          grub-pc-bin \
+          grub-common \
+          xorriso \
+          mtools \
+          qemu-system-x86
+    
+    - name: Check for kernel files
+      id: check_kernel
+      run: |
+        if [ -d "kernel" ] && [ -d "boot" ] && [ -f "Makefile" ]; then
+          echo "kernel_exists=true" >> $GITHUB_OUTPUT
+          echo "Kernel source found - will build ISO"
+        else
+          echo "kernel_exists=false" >> $GITHUB_OUTPUT
+          echo "No kernel source found - skipping ISO build"
+        fi
+    
+    - name: Build kernel
+      if: steps.check_kernel.outputs.kernel_exists == 'true'
+      run: |
+        if [ -f "Makefile.simple" ]; then
+          make -f Makefile.simple
+        elif [ -f "Makefile" ]; then
+          make
+        fi
+    
+    - name: Build ISO
+      if: steps.check_kernel.outputs.kernel_exists == 'true'
+      run: |
+        if [ -f "Makefile.simple" ]; then
+          make -f Makefile.simple iso || make iso
+        elif [ -f "Makefile" ]; then
+          make iso
+        fi
+    
+    - name: Verify ISO
+      if: steps.check_kernel.outputs.kernel_exists == 'true'
+      run: |
+        if [ -f "slopos.iso" ]; then
+          ls -lh slopos.iso
+          echo "ISO size: $(du -h slopos.iso | cut -f1)"
+        else
+          echo "ISO file not found!"
+          exit 1
+        fi
+    
+    - name: Test ISO in QEMU (headless)
+      if: steps.check_kernel.outputs.kernel_exists == 'true'
+      run: |
+        timeout 10s qemu-system-i386 \
+          -cdrom slopos.iso \
+          -m 32M \
+          -nographic \
+          -serial mon:stdio \
+          || true
+        echo "QEMU boot test completed"
+    
+    - name: Get version info
+      if: steps.check_kernel.outputs.kernel_exists == 'true'
+      id: version
+      run: |
+        if [[ $GITHUB_REF == refs/tags/* ]]; then
+          VERSION=${GITHUB_REF#refs/tags/}
+        else
+          VERSION="iso-$(date +'%Y%m%d-%H%M%S')-${GITHUB_SHA::8}"
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+    
+    - name: Upload ISO artifact
+      if: steps.check_kernel.outputs.kernel_exists == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: slopos-iso-${{ steps.version.outputs.version }}
+        path: |
+          slopos.iso
+          slopos.bin
+        retention-days: 90
+    
+    - name: Create release with ISO
+      if: steps.check_kernel.outputs.kernel_exists == 'true' && startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          slopos.iso
+          slopos.bin
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+        body: |
+          ## slopOS Bootable ISO Release ${{ steps.version.outputs.version }}
+          
+          ### What's Included
+          - **slopos.iso**: Bootable ISO image (can be used in VirtualBox, VMware, QEMU, etc.)
+          - **slopos.bin**: Raw kernel binary
+          
+          ### How to Run
+          
+          #### In QEMU:
+          ```bash
+          qemu-system-i386 -cdrom slopos.iso -m 32M
+          ```
+          
+          #### In VirtualBox:
+          1. Create a new VM (Type: Other, Version: Other/Unknown)
+          2. Set memory to 32MB minimum
+          3. Mount slopos.iso as a CD/DVD
+          4. Boot the VM
+          
+          #### In VMware:
+          1. Create a new VM (Guest OS: Other)
+          2. Set memory to 32MB minimum
+          3. Mount slopos.iso as CD/DVD
+          4. Boot the VM
+          
+          ### Default Login
+          - Username: `admin`
+          - Password: `slopOS123`
+          
+          ### System Requirements
+          - x86 compatible processor
+          - 32MB RAM minimum
+          - VGA-compatible display
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

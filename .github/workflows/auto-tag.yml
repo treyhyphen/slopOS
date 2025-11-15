@@ -1,0 +1,102 @@
+name: Auto-tag Release
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'src/**'
+      - 'kernel/**'
+      - 'boot/**'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to tag (e.g., 1.0.0 or v1.0.0)'
+        required: false
+        type: string
+      bump:
+        description: 'Version bump type'
+        required: false
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  auto-tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Get latest tag
+      id: get_tag
+      run: |
+        # Get the latest tag, or use v0.1.0 if no tags exist
+        LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.1.0")
+        echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+        echo "Latest tag: $LATEST_TAG"
+        
+        # Check if manual version was provided
+        MANUAL_VERSION="${{ github.event.inputs.version }}"
+        if [ -n "$MANUAL_VERSION" ]; then
+          # Remove 'v' prefix if present
+          MANUAL_VERSION=${MANUAL_VERSION#v}
+          NEW_TAG="v$MANUAL_VERSION"
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "Using manual version: $NEW_TAG"
+          exit 0
+        fi
+        
+        # Parse version numbers
+        VERSION=${LATEST_TAG#v}
+        IFS='.' read -ra VERSION_PARTS <<< "$VERSION"
+        MAJOR=${VERSION_PARTS[0]:-0}
+        MINOR=${VERSION_PARTS[1]:-0}
+        PATCH=${VERSION_PARTS[2]:-0}
+        
+        # Determine bump type
+        BUMP_TYPE="${{ github.event.inputs.bump }}"
+        if [ -z "$BUMP_TYPE" ]; then
+          BUMP_TYPE="patch"
+        fi
+        
+        # Increment version based on bump type
+        case "$BUMP_TYPE" in
+          major)
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+            ;;
+          minor)
+            MINOR=$((MINOR + 1))
+            PATCH=0
+            ;;
+          patch)
+            PATCH=$((PATCH + 1))
+            ;;
+        esac
+        
+        NEW_TAG="v$MAJOR.$MINOR.$PATCH"
+        
+        echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+        echo "New tag (${BUMP_TYPE} bump): $NEW_TAG"
+    
+    - name: Create and push tag
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        
+        NEW_TAG="${{ steps.get_tag.outputs.new_tag }}"
+        git tag -a "$NEW_TAG" -m "Auto-release $NEW_TAG"
+        git push origin "$NEW_TAG"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
