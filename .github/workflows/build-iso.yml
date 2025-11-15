@@ -4,10 +4,19 @@ on:
   push:
     branches:
       - '**'  # Build ISO on any branch push
+    paths:
+      - 'src/**'
+      - 'boot/**'
+      - 'Makefile*'
+      - '.github/workflows/**'
   pull_request:
     branches:
       - main
       - master
+    paths:
+      - 'src/**'
+      - 'boot/**'
+      - 'Makefile*'
   workflow_dispatch:
 
 permissions:
