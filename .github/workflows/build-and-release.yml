@@ -37,7 +37,9 @@ jobs:
     
     - name: Build simulator
       run: |
-        gcc src/main.c -o slopos_sim
+        make clean
+        make
+        mv slopOS slopos_sim
         chmod +x slopos_sim
     
     - name: Test simulator
