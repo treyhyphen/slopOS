@@ -1,0 +1,45 @@
+# slopOS Simplified Makefile
+# Builds the bootable kernel from unified src/slopos.c
+#
+# NOTE: This builds with -DKERNEL_MODE. For the simulator, use: make -f Makefile
+
+AS = nasm
+CC = gcc
+LD = ld
+GRUB_MKRESCUE = grub-mkrescue
+
+ASFLAGS = -f elf32
+CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -Wall -Wextra -DKERNEL_MODE -c
+LDFLAGS = -m elf_i386 -T kernel/linker.ld
+
+KERNEL_OBJS = boot/boot.o kernel/kernel.o
+KERNEL_BIN = slopos.bin
+ISO_DIR = isodir
+ISO_FILE = slopos.iso
+
+.PHONY: all clean iso run
+
+all: $(KERNEL_BIN)
+
+boot/boot.o: boot/boot.s
+	$(AS) $(ASFLAGS) $< -o $@
+
+kernel/kernel.o: src/slopos.c
+	$(CC) $(CFLAGS) $< -o $@
+
+$(KERNEL_BIN): $(KERNEL_OBJS)
+	$(LD) $(LDFLAGS) -o $@ $(KERNEL_OBJS)
+
+iso: $(KERNEL_BIN)
+	mkdir -p $(ISO_DIR)/boot/grub
+	cp $(KERNEL_BIN) $(ISO_DIR)/boot/$(KERNEL_BIN)
+	cp isodir/boot/grub/grub.cfg $(ISO_DIR)/boot/grub/grub.cfg || echo 'menuentry "slopOS" { multiboot /boot/$(KERNEL_BIN) }' > $(ISO_DIR)/boot/grub/grub.cfg
+	$(GRUB_MKRESCUE) -o $(ISO_FILE) $(ISO_DIR)
+	@echo "ISO created: $(ISO_FILE)"
+
+run: $(KERNEL_BIN)
+	qemu-system-i386 -kernel $(KERNEL_BIN) -m 32M
+
+clean:
+	rm -f $(KERNEL_OBJS) $(KERNEL_BIN) $(ISO_FILE)
+	rm -rf $(ISO_DIR)
