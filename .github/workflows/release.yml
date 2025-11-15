@@ -1,0 +1,218 @@
+name: Create Release
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump type (leave empty to auto-increment patch)'
+        required: false
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+      
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          gcc-multilib \
+          g++-multilib \
+          nasm \
+          grub-pc-bin \
+          grub-common \
+          xorriso \
+          mtools
+    
+    - name: Determine version
+      id: version
+      run: |
+        # If this is a tag push, use the tag
+        if [[ $GITHUB_REF == refs/tags/* ]]; then
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "📌 Using tag: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "should_release=true" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        
+        # Otherwise, auto-increment version for main branch
+        LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+        echo "Latest tag: $LATEST_TAG"
+        
+        # Parse version
+        VERSION=${LATEST_TAG#v}
+        IFS='.' read -ra PARTS <<< "$VERSION"
+        MAJOR=${PARTS[0]:-0}
+        MINOR=${PARTS[1]:-0}
+        PATCH=${PARTS[2]:-0}
+        
+        # Determine bump type
+        BUMP="${{ github.event.inputs.bump }}"
+        if [ -z "$BUMP" ]; then
+          BUMP="patch"
+        fi
+        
+        # Increment
+        case "$BUMP" in
+          major)
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+            ;;
+          minor)
+            MINOR=$((MINOR + 1))
+            PATCH=0
+            ;;
+          patch)
+            PATCH=$((PATCH + 1))
+            ;;
+        esac
+        
+        NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
+        echo "🆕 New version: $NEW_VERSION (${BUMP} bump)"
+        echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+        echo "should_release=true" >> $GITHUB_OUTPUT
+    
+    - name: Build kernel
+      if: steps.version.outputs.should_release == 'true'
+      run: |
+        make -f Makefile.simple clean
+        make -f Makefile.simple
+    
+    - name: Build ISO
+      if: steps.version.outputs.should_release == 'true'
+      run: |
+        make -f Makefile.simple iso
+        ls -lh slopos.iso slopos.bin
+    
+    - name: Create and push tag
+      if: steps.version.outputs.should_release == 'true' && !startsWith(github.ref, 'refs/tags/')
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        
+        VERSION="${{ steps.version.outputs.version }}"
+        git tag -a "$VERSION" -m "Release $VERSION"
+        git push origin "$VERSION"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Create GitHub Release
+      if: steps.version.outputs.should_release == 'true'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.version.outputs.version }}
+        name: slopOS ${{ steps.version.outputs.version }}
+        files: |
+          slopos.iso
+          slopos.bin
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+        body: |
+          ## 💿 slopOS Bootable ISO Release ${{ steps.version.outputs.version }}
+          
+          ### 📥 Quick Download
+          **[⬇️ Download slopos.iso](https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/slopos.iso)** - Ready to boot!
+          
+          ### 📦 What's Included
+          - **slopos.iso** (~5MB) - Bootable ISO image for VirtualBox, VMware, QEMU, or real hardware
+          - **slopos.bin** (~24KB) - Raw kernel binary (for QEMU direct kernel boot)
+          
+          ### 🚀 Quick Start
+          
+          #### Option 1: QEMU (Fastest)
+          ```bash
+          wget https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/slopos.iso
+          qemu-system-i386 -cdrom slopos.iso -m 32M
+          ```
+          
+          #### Option 2: VirtualBox
+          1. Download `slopos.iso` from the assets above
+          2. Create a new VM:
+             - Type: **Other**
+             - Version: **Other/Unknown**
+             - Memory: **32MB** minimum (128MB recommended)
+          3. Settings → Storage → Add optical drive → Select `slopos.iso`
+          4. Start the VM
+          
+          #### Option 3: VMware
+          1. Download `slopos.iso`
+          2. Create a new VM (Guest OS: Other)
+          3. Set memory to 32MB minimum
+          4. Mount `slopos.iso` as CD/DVD
+          5. Power on
+          
+          #### Option 4: Real Hardware (USB Boot)
+          ```bash
+          sudo dd if=slopos.iso of=/dev/sdX bs=4M status=progress
+          sync
+          ```
+          ⚠️ Replace `/dev/sdX` with your USB drive (check with `lsblk`)
+          
+          ### 🔐 Default Credentials
+          - **Admin User**
+            - Username: `admin`
+            - Password: `slopOS123`
+            - Has administrator privileges
+          
+          - **Regular User**
+            - Username: `user`
+            - Password: `password`
+            - Standard user privileges
+          
+          ### 🎯 Features
+          - ✅ Multi-user authentication with SHA256 password hashing
+          - ✅ Hierarchical filesystem (mkdir, touch, ls, cd, pwd)
+          - ✅ PS/2 keyboard driver with shift key support
+          - ✅ VGA text mode with color output
+          - ✅ User management (whoami, listusers)
+          - ✅ Admin/regular user roles with permissions
+          
+          ### 💻 Available Commands
+          ```
+          help       - Show all commands
+          ls         - List directory contents
+          mkdir      - Create directory
+          touch      - Create file
+          cd         - Change directory (use 'cd ..' for parent)
+          pwd        - Print working directory
+          whoami     - Show current user and role
+          listusers  - List all users (admin only)
+          clear      - Clear screen
+          ```
+          
+          ### ⚙️ System Requirements
+          - **Processor**: x86 compatible (32-bit)
+          - **Memory**: 32MB minimum
+          - **Display**: VGA-compatible
+          - **Keyboard**: PS/2 or USB (BIOS compatibility mode)
+          
+          ### 📝 Notes
+          - Changes are not persistent (in-memory filesystem only)
+          - Maximum 256 filesystem entries
+          - Shift key works for capital letters and symbols
+          - 3 login attempts before system halt
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

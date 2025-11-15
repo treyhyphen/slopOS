@@ -3,13 +3,20 @@ name: Build Bootable ISO
 on:
   push:
     branches:
+      - '**'  # Build ISO on any branch push
+    paths:
+      - 'src/**'
+      - 'boot/**'
+      - 'Makefile*'
+      - '.github/workflows/**'
+  pull_request:
+    branches:
       - main
       - master
     paths:
+      - 'src/**'
       - 'boot/**'
-      - 'src/slopos.c'
       - 'Makefile*'
-      - '.github/workflows/build-iso.yml'
   workflow_dispatch:
 
 permissions:
@@ -22,6 +29,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Need full history for versioning
       
     - name: Install build dependencies
       run: |
@@ -42,11 +51,10 @@ jobs:
       run: |
         if [ -d "boot" ] && [ -f "Makefile.simple" ] && [ -f "src/slopos.c" ] && [ -f "boot/boot.s" ]; then
           echo "kernel_exists=true" >> $GITHUB_OUTPUT
-          echo "Kernel source found - will build ISO"
+          echo "✅ Kernel source found - will build ISO"
         else
           echo "kernel_exists=false" >> $GITHUB_OUTPUT
-          echo "No kernel source found - skipping ISO build"
-          echo "Note: This is normal if you only have the simulator"
+          echo "❌ No kernel source found - skipping ISO build"
         fi
     
     - name: Build kernel
@@ -93,14 +101,19 @@ jobs:
       if: steps.check_kernel.outputs.kernel_exists == 'true'
       id: version
       run: |
+        # Check if this is a tag push
         if [[ $GITHUB_REF == refs/tags/* ]]; then
           VERSION=${GITHUB_REF#refs/tags/}
+          echo "📌 Tagged release: $VERSION"
         else
-          VERSION="iso-$(date +'%Y%m%d-%H%M%S')-${GITHUB_SHA::8}"
+          # Generate test version for non-tag builds
+          VERSION="test-$(date +'%Y%m%d-%H%M%S')-${GITHUB_SHA::8}"
+          echo "🧪 Test build: $VERSION"
         fi
         echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "is_release=false" >> $GITHUB_OUTPUT
     
-    - name: Upload ISO artifact
+    - name: Upload ISO artifact (for testing)
       if: steps.check_kernel.outputs.kernel_exists == 'true'
       uses: actions/upload-artifact@v4
       with:
@@ -108,104 +121,5 @@ jobs:
         path: |
           slopos.iso
           slopos.bin
-        retention-days: 90
-    
-    - name: Create release with ISO
-      if: steps.check_kernel.outputs.kernel_exists == 'true' && startsWith(github.ref, 'refs/tags/')
-      uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          slopos.iso
-          slopos.bin
-        draft: false
-        prerelease: false
-        generate_release_notes: true
-        body: |
-          ## 💿 slopOS Bootable ISO Release ${{ steps.version.outputs.version }}
-          
-          ### 📥 Quick Download
-          **[⬇️ Download slopos.iso](${{ github.server_url }}/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/slopos.iso)** - Ready to boot!
-          
-          ### 📦 What's Included
-          - **slopos.iso** (5MB) - Bootable ISO image for VirtualBox, VMware, QEMU, or real hardware
-          - **slopos.bin** (24KB) - Raw kernel binary (for QEMU direct kernel boot)
-          
-          ### 🚀 Quick Start
-          
-          #### Option 1: QEMU (Fastest)
-          ```bash
-          wget ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/slopos.iso
-          qemu-system-i386 -cdrom slopos.iso -m 32M
-          ```
-          
-          #### Option 2: VirtualBox
-          1. Download `slopos.iso` from the assets above
-          2. Create a new VM:
-             - Type: **Other**
-             - Version: **Other/Unknown**
-             - Memory: **32MB** minimum (128MB recommended)
-          3. Settings → Storage → Add optical drive → Select `slopos.iso`
-          4. Start the VM
-          
-          #### Option 3: VMware
-          1. Download `slopos.iso`
-          2. Create a new VM (Guest OS: Other)
-          3. Set memory to 32MB minimum
-          4. Mount `slopos.iso` as CD/DVD
-          5. Power on
-          
-          #### Option 4: Real Hardware (USB Boot)
-          ```bash
-          sudo dd if=slopos.iso of=/dev/sdX bs=4M status=progress
-          sync
-          ```
-          ⚠️ Replace `/dev/sdX` with your USB drive (check with `lsblk`)
-          
-          ### 🔐 Default Credentials
-          - **Admin User**
-            - Username: `admin`
-            - Password: `slopOS123`
-            - Has administrator privileges
-          
-          - **Regular User**
-            - Username: `user`
-            - Password: `password`
-            - Standard user privileges
-          
-          ### 🎯 Features
-          - ✅ Multi-user authentication with SHA256 password hashing
-          - ✅ Hierarchical filesystem (mkdir, touch, ls, cd, pwd)
-          - ✅ PS/2 keyboard driver with shift key support
-          - ✅ VGA text mode with color output
-          - ✅ User management (whoami, listusers)
-          - ✅ Admin/regular user roles with permissions
-          
-          ### 💻 Available Commands
-          ```
-          help       - Show all commands
-          ls         - List directory contents
-          mkdir      - Create directory
-          touch      - Create file
-          cd         - Change directory (use 'cd ..' for parent)
-          pwd        - Print working directory
-          whoami     - Show current user and role
-          listusers  - List all users (admin only)
-          clear      - Clear screen
-          ```
-          
-          ### ⚙️ System Requirements
-          - **Processor**: x86 compatible (32-bit)
-          - **Memory**: 32MB minimum
-          - **Display**: VGA-compatible
-          - **Keyboard**: PS/2 or USB (BIOS compatibility mode)
-          
-          ### 📝 Notes
-          - Changes are not persistent (in-memory filesystem only)
-          - Maximum 256 filesystem entries
-          - Shift key works for capital letters and symbols
-          - 3 login attempts before system halt
-          - x86 compatible processor
-          - 32MB RAM minimum
-          - VGA-compatible display
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        retention-days: 30
+
