@@ -1,169 +1,275 @@
 # slopOS v0.1.0
 
-A full-featured hobby operating system written in C with authentication, filesystem, and interactive shell.
+> *"Why buy Windows when you can have slopOS for free?"* 🪟❌
 
-## Features
+A hilariously over-engineered hobby operating system that boots on real hardware and does... well, not much. But it does that not-much with **style**! 🎨
 
-- 🔐 **Authentication System** - User login with password hashing (SHA256-simple)
-- 📁 **Hierarchical Filesystem** - Directories, files, and navigation (cd, mkdir, touch, ls, pwd)
-- ⌨️ **PS/2 Keyboard Driver** - Interactive command-line interface with line editing
-- 🎨 **VGA Text Mode** - 80x25 colored display with scrolling
-- 👥 **Multi-User Support** - Admin and regular user roles with permissions
-- 💾 **Bootable ISO** - Full x86 kernel with GRUB bootloader
+Think of it as "My First Operating System" meets "I Have Too Much Free Time". Features include a filesystem that forgets everything when you turn it off, a GUI made of ASCII characters, and enough features to make you wonder "but why though?"
 
-## Quick Start
+## 🎪 What Makes slopOS Special?
 
-### Using Pre-built ISO
+- ✨ **Boots on REAL hardware!** (Your BIOS will be very confused)
+- 🔐 **SHA256 password hashing** (because we're securing... nothing)
+- 📁 **A filesystem!** (that disappears when you reboot, just like your hopes and dreams)
+- 🎨 **ASCII GUI windows!** (it's not a bug, it's retro aesthetic)
+- ⌨️ **Full keyboard support!** (Shift key included, unlike certain other projects)
+- ⬆️⬇️ **Command history!** (Up/Down arrows work, we're basically professionals now)
+- 👥 **Multi-user system!** (admin vs regular user, very serious business)
+- 🪟 **Window manager!** (made entirely of `+`, `-`, and `|` characters)
 
-1. **Download/Build ISO:**
-   ```bash
-   make -f Makefile.simple clean all iso
-   ```
+## 🚀 Quick Start (or "How to Waste 5 Minutes")
 
-2. **Test in QEMU:**
-   ```bash
-   qemu-system-i386 -cdrom slopos.iso -m 32
-   ```
+### Building This Masterpiece
 
-3. **Login:**
-   - Username: `admin` Password: `slopOS123` (administrator)
-   - Username: `user` Password: `password` (regular user)
-
-4. **Try Commands:**
-   ```bash
-   help              # Show available commands
-   mkdir projects    # Create directory
-   ls                # List contents
-   cd projects       # Change directory
-   touch readme.txt  # Create file
-   pwd               # Show current path
-   whoami            # Show current user
-   ```
-
-## Building from Source
-
-### Prerequisites
-- GCC (32-bit support)
-- NASM (x86 assembler)
-- GRUB tools (grub-mkrescue, xorriso, mtools)
-- QEMU (for testing)
-
-### Build Commands
 ```bash
-# Build simulator (standard C)
-gcc src/main.c -o slopOS
+# Build the simulator (if you're scared of real hardware)
+make
 
-# Build bootable ISO
-make -f Makefile.simple clean    # Clean previous build
-make -f Makefile.simple all      # Compile kernel
-make -f Makefile.simple iso      # Create ISO
+# Build the actual bootable ISO (you brave soul)
+make -f Makefile.simple clean all iso
 
-# Test
-./test-full-iso.sh               # Automated tests
-qemu-system-i386 -cdrom slopos.iso -m 32  # Interactive test
+# Test in QEMU (safe)
+qemu-system-i386 -cdrom slopos.iso -m 32M
+
+# Or burn to USB and pray (DANGEROUS ⚠️)
+sudo dd if=slopos.iso of=/dev/sdX bs=4M
+# Replace /dev/sdX with your USB. Or don't. I'm not your dad.
 ```
 
-## Available Commands
+### Default Credentials
+(Yes, we have LOGIN SECURITY for our volatile memory filesystem)
 
-| Command | Description | Example |
-|---------|-------------|---------|
-| `help` | Show all commands | `help` |
-| `ls` | List directory contents | `ls` |
-| `mkdir <name>` | Create directory | `mkdir projects` |
-| `touch <name>` | Create file | `touch readme.txt` |
-| `cd <name>` | Change directory | `cd projects` or `cd ..` |
-| `pwd` | Print working directory | `pwd` |
-| `whoami` | Show current user | `whoami` |
-| `listusers` | List all users (admin only) | `listusers` |
-| `clear` | Clear screen | `clear` |
+- **Admin**: username `admin`, password `slopOS123` (very secure, much wow)
+- **Regular User**: username `user`, password `password` (maximum creativity)
 
-## Project Structure
+### Your First Commands
+
+```bash
+help              # "HELP! What have I done?!"
+ls                # Look at all this nothing!
+mkdir memes       # Create a directory (it'll be gone in 5 minutes)
+cd memes          # Enter the void
+touch dank.txt    # Create a "file" (it's just metadata, calm down)
+pwd               # "Where am I? Who am I?"
+whoami            # Existential crisis simulator
+```
+
+## 📦 Features That Will Make You Question Everything
+
+### 🔐 Authentication System
+Because every OS that forgets everything needs password security! Features:
+- SHA256 password hashing (overkill? perhaps.)
+- 3 failed login attempts and the system just... gives up on life (system halt)
+- Admin vs regular user roles (admins can... um... list users. That's it.)
+
+### 📁 "Filesystem" (Use Air Quotes)
+A hierarchical filesystem that exists purely in RAM! Features:
+- Directories! Files! Metadata!
+- Maximum 256 entries (we're not made of memory here)
+- `cd ..` actually works (we're very proud of this)
+- Stores absolutely zero file content (it's the journey, not the destination)
+
+### ⌨️ PS/2 Keyboard Driver
+Lovingly hand-crafted to interpret your keystrokes:
+- Full scancode translation (we memorized the PS/2 scancode table so you don't have to)
+- Shift key support (IT ACTUALLY WORKS NOW! 🎉)
+- Backspace (for when you regret your life choices)
+- Arrow keys for command history (⬆️⬇️ like a REAL shell)
+
+### 🎨 VGA Text Mode Display
+80x25 characters of pure beauty:
+- Hardware cursor that actually follows your typing (revolutionary!)
+- Scrolling (when you run out of screen, we just... shift everything up)
+- Colors! (well, VGA text mode colors, but still!)
+- Clear screen (when the existential dread gets too much)
+
+### 🪟 ASCII GUI "Window Manager"
+Yes, we have windows. Made of ASCII art. Because we can.
+
+```bash
+startgui                      # Enter the ✨ aesthetic ✨
+newwin MyWindow 5 3 30 10     # Create a fancy box
+writewin 1 "Hello!"           # Write text in the box
+focuswin 1                    # Make it blue (very important)
+listwin                       # Admire your creations
+closewin 1                    # Destroy everything
+exitgui                       # Escape back to reality
+```
+
+Windows feature:
+- Borders made of `+`, `-`, and `|` (cutting edge graphics)
+- Focus indication (blue = focused, because psychology)
+- Overlapping windows (they just draw over each other, deal with it)
+- Window titles (so you can name your void)
+
+### 👥 User Management
+A sophisticated multi-user system for your single-user OS:
+
+```bash
+passwd                        # Change your password (why though?)
+adduser bob secretpass123     # Create new user (admin only)
+deluser bob                   # Destroy Bob (admin only)
+listusers                     # See all the users (admin only)
+```
+
+*Note: Can't delete yourself. We're not THAT chaotic.*
+
+## 🎮 All Available Commands
+
+| Command | What It Do | Example | Chaos Level |
+|---------|-----------|---------|-------------|
+| `help` | Shows this list of questionable choices | `help` | ⭐ |
+| `ls` | Lists your temporary filesystem entries | `ls` | ⭐ |
+| `mkdir` | Makes a directory that'll vanish on reboot | `mkdir temp` | ⭐⭐ |
+| `touch` | Creates a file with no content | `touch file.txt` | ⭐⭐ |
+| `cd` | Changes directory (supports `..` like a boss) | `cd dir` | ⭐⭐ |
+| `pwd` | Shows where you are in the void | `pwd` | ⭐ |
+| `whoami` | Existential crisis command | `whoami` | ⭐⭐⭐⭐ |
+| `listusers` | Lists all users (admin flex) | `listusers` | ⭐⭐ |
+| `passwd` | Change password to something you'll forget | `passwd` | ⭐⭐⭐ |
+| `adduser` | Create new user who'll be deleted on reboot | `adduser bob pass` | ⭐⭐⭐⭐ |
+| `deluser` | Destroy a user (admin only) | `deluser bob` | ⭐⭐⭐⭐⭐ |
+| `startgui` | Enter the ASCII Matrix | `startgui` | ⭐⭐⭐⭐⭐ |
+| `newwin` | Create ASCII window | `newwin Title 5 3 30 10` | ⭐⭐⭐⭐ |
+| `closewin` | Destroy window | `closewin 1` | ⭐⭐⭐ |
+| `focuswin` | Make window blue | `focuswin 1` | ⭐⭐ |
+| `listwin` | Admire your ASCII art | `listwin` | ⭐⭐ |
+| `writewin` | Put text in window | `writewin 1 "hi"` | ⭐⭐⭐ |
+| `exitgui` | Escape the Matrix | `exitgui` | ⭐⭐⭐⭐⭐ |
+| `clear` | Make the bad thoughts go away | `clear` | ⭐⭐⭐⭐⭐ |
+
+**Arrow Keys**: ⬆️ = previous command, ⬇️ = next command (stores up to 50, because we're not animals)
+
+## 🏗️ Technical Details (For the Nerds)
+
+- **Architecture**: x86 (32-bit, because 64-bit is too mainstream)
+- **Bootloader**: GRUB Multiboot (they did the hard part)
+- **Memory**: Loads at 1MB (like it's 1995)
+- **Display**: VGA text mode at 0xB8000 (retro!)
+- **Keyboard**: PS/2 I/O ports (scancode translation? we got you)
+- **Filesystem**: In-memory linked list (256 entries max, we're not Google)
+- **Security**: SHA256-simple (we implemented our own, probably broken)
+- **Kernel Size**: 32KB (smol bean)
+- **ISO Size**: 5MB (most of it is GRUB)
+
+## 📁 What's In The Box?
 
 ```
 slopOS/
 ├── src/
-│   └── main.c              # OS simulator (standard C)
-├── kernel/
-│   ├── kernel.c            # Bootable kernel (~900 lines)
-│   └── linker.ld           # Memory layout
+│   └── slopos.c              # 1500 lines of "why did I do this?"
 ├── boot/
-│   └── boot.s              # Multiboot bootloader
-├── Makefile.simple         # Build system
-├── test-full-iso.sh        # Automated testing
-├── FULL_ISO_GUIDE.md       # Detailed usage guide
-└── README.md               # This file
+│   └── boot.s                # Assembly that we copy-pasted
+├── kernel/
+│   └── linker.ld             # Memory layout (black magic)
+├── Makefile                  # Builds the simulator
+├── Makefile.simple           # Builds the actual kernel
+└── README.md                 # You are here (help)
 ```
 
-## Technical Details
+## 🎯 Building From Source (If You Dare)
 
-- **Architecture:** x86 (32-bit)
-- **Bootloader:** GRUB (Multiboot specification)
-- **Display:** VGA text mode (0xB8000)
-- **Keyboard:** PS/2 via I/O ports (0x60, 0x64)
-- **Memory:** Kernel at 1MB, 32MB RAM minimum
-- **Filesystem:** In-memory hierarchical (256 entries max)
-- **Authentication:** SHA256-simple password hashing
+### What You Need
+- GCC with 32-bit support (probably already have it)
+- NASM (for the assembly we copy-pasted)
+- GRUB tools (grub-mkrescue, xorriso, mtools)
+- QEMU (for safe testing before committing hardware crimes)
+- A sense of humor (not optional)
 
-## Documentation
+### The Build Process
 
-- **[Full ISO Guide](FULL_ISO_GUIDE.md)** - Complete guide for bootable ISO
-- **[Version Script](version.sh)** - Version management tool
-
-## Development
-
-### Version Management
 ```bash
-# Set version via script
-./version.sh 0.2.0
+# Simulator build (safe, boring)
+make
+./slopOS
 
-# Or via git tag
-git tag v0.2.0
-git push origin v0.2.0
+# REAL KERNEL BUILD (exciting, dangerous)
+make -f Makefile.simple clean
+make -f Makefile.simple all
+make -f Makefile.simple iso
 
-# Or via GitHub UI
-# Create release with tag v0.2.0
-```
+# Test without risking your actual computer
+qemu-system-i386 -cdrom slopos.iso -m 32M
 
-### CI/CD Workflows
-- **build-iso.yml** - Builds ISO on kernel changes
-- **build-and-release.yml** - Creates GitHub releases on tags
-- **auto-tag.yml** - Auto-increments patch version
-
-## Testing
-
-### Automated Tests
-```bash
-./test-full-iso.sh
-```
-
-### Manual Testing
-```bash
-# QEMU (recommended)
-qemu-system-i386 -cdrom slopos.iso -m 32
-
-# VirtualBox
-# 1. Create VM: Type=Other, RAM=32MB
-# 2. Mount slopos.iso
-# 3. Boot
-
-# Real Hardware
-# 1. Write ISO to USB: sudo dd if=slopos.iso of=/dev/sdX bs=4M
+# Test on real hardware (you absolute madlad)
+# 1. dd to USB drive
 # 2. Boot from USB
+# 3. Marvel at what you've done
+# 4. Question your life choices
 ```
 
-## Known Limitations
+## ⚠️ Known "Features" (Definitely Not Bugs)
 
-- No persistence (changes lost on reboot)
-- Maximum 256 filesystem entries
-- No file content storage
-- Single-tasking only
-- No networking
-- US QWERTY keyboard only
+- 💾 **Persistence**: None. Zero. Nada. Reboot and it's all gone.
+- 📊 **File Content**: Files don't actually store data. It's just names. Philosophy!
+- 🔢 **Filesystem Size**: 256 entries max. After that? ¯\\\_(ツ)_/¯
+- 🌐 **Networking**: What's networking?
+- 🖱️ **Mouse**: Use your imagination
+- ⌨️ **Keyboard**: US QWERTY only (sorry international friends)
+- 🎵 **Sound**: Silence is golden
+- 📱 **USB Support**: PS/2 or die
+- 🔒 **Security**: We hash passwords for a filesystem that doesn't exist
+- 🪟 **GUI**: "Graphics" made of ASCII characters
+- 🔄 **Multitasking**: One thing at a time, like my brain
 
-## License
+## 🎓 What You'll Learn
 
-Hobby project - Use at your own risk
+- How to waste time productively
+- VGA text mode programming (it's 2025, this is peak relevance)
+- PS/2 keyboard scancode translation (equally useful)
+- Why operating systems are hard
+- Why you should appreciate Linux
+- How to draw windows with ASCII characters
+- That implementing `cd ..` is harder than it looks
+- Arrow key command history (actually useful)
 
-## Version
+## 🤝 Contributing
 
-Current version: **v0.1.0**
+If you actually want to contribute to this... thank you? I guess?
+
+Things that would make slopOS marginally less useless:
+- [ ] File content storage (radical idea)
+- [ ] Persistent filesystem (even more radical)
+- [ ] Mouse support (heresy)
+- [ ] More keyboard layouts (international chaos)
+- [ ] A better GUI (ASCII art is sacred though)
+- [ ] Actual file operations (read/write/edit)
+- [ ] Tab completion (fancy!)
+- [ ] More jokes in this README
+
+## 📜 License
+
+Do whatever you want with this. If you somehow make money from it, please tell me how.
+
+## 🙏 Acknowledgments
+
+- The entire Internet for StackOverflow answers
+- GRUB developers for doing the hard boot stuff
+- PS/2 keyboard for still existing in VirtualBox
+- Anyone who actually boots this on real hardware (you're braver than me)
+- My CPU for not catching fire during development
+
+## 📫 Support
+
+If something breaks:
+1. That's normal
+2. Did you reboot? Everything's gone anyway
+3. Check that you typed the command right
+4. Try turning it off and on again (literally)
+5. Remember: it's a hobby OS, expectations should be LOW
+
+## 🎪 Current Version
+
+**v0.1.0** - "It Boots, I Guess" Edition
+
+Features:
+- Boots (sometimes)
+- Accepts input (usually)
+- Displays output (mostly)
+- Doesn't catch fire (yet)
+
+---
+
+*Made with ☕, ⌨️, and questionable life choices*
+
+**slopOS**: Because "Hello World" was too simple.
