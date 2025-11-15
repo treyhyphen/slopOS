@@ -118,36 +118,89 @@ jobs:
         prerelease: false
         generate_release_notes: true
         body: |
-          ## slopOS Bootable ISO Release ${{ steps.version.outputs.version }}
+          ## 💿 slopOS Bootable ISO Release ${{ steps.version.outputs.version }}
           
-          ### What's Included
-          - **slopos.iso**: Bootable ISO image (can be used in VirtualBox, VMware, QEMU, etc.)
-          - **slopos.bin**: Raw kernel binary
+          ### 📥 Quick Download
+          **[⬇️ Download slopos.iso](${{ github.server_url }}/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/slopos.iso)** - Ready to boot!
           
-          ### How to Run
+          ### 📦 What's Included
+          - **slopos.iso** (5MB) - Bootable ISO image for VirtualBox, VMware, QEMU, or real hardware
+          - **slopos.bin** (24KB) - Raw kernel binary (for QEMU direct kernel boot)
           
-          #### In QEMU:
+          ### 🚀 Quick Start
+          
+          #### Option 1: QEMU (Fastest)
           ```bash
+          wget ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/slopos.iso
           qemu-system-i386 -cdrom slopos.iso -m 32M
           ```
           
-          #### In VirtualBox:
-          1. Create a new VM (Type: Other, Version: Other/Unknown)
-          2. Set memory to 32MB minimum
-          3. Mount slopos.iso as a CD/DVD
-          4. Boot the VM
+          #### Option 2: VirtualBox
+          1. Download `slopos.iso` from the assets above
+          2. Create a new VM:
+             - Type: **Other**
+             - Version: **Other/Unknown**
+             - Memory: **32MB** minimum (128MB recommended)
+          3. Settings → Storage → Add optical drive → Select `slopos.iso`
+          4. Start the VM
           
-          #### In VMware:
-          1. Create a new VM (Guest OS: Other)
-          2. Set memory to 32MB minimum
-          3. Mount slopos.iso as CD/DVD
-          4. Boot the VM
+          #### Option 3: VMware
+          1. Download `slopos.iso`
+          2. Create a new VM (Guest OS: Other)
+          3. Set memory to 32MB minimum
+          4. Mount `slopos.iso` as CD/DVD
+          5. Power on
           
-          ### Default Login
-          - Username: `admin`
-          - Password: `slopOS123`
+          #### Option 4: Real Hardware (USB Boot)
+          ```bash
+          sudo dd if=slopos.iso of=/dev/sdX bs=4M status=progress
+          sync
+          ```
+          ⚠️ Replace `/dev/sdX` with your USB drive (check with `lsblk`)
           
-          ### System Requirements
+          ### 🔐 Default Credentials
+          - **Admin User**
+            - Username: `admin`
+            - Password: `slopOS123`
+            - Has administrator privileges
+          
+          - **Regular User**
+            - Username: `user`
+            - Password: `password`
+            - Standard user privileges
+          
+          ### 🎯 Features
+          - ✅ Multi-user authentication with SHA256 password hashing
+          - ✅ Hierarchical filesystem (mkdir, touch, ls, cd, pwd)
+          - ✅ PS/2 keyboard driver with shift key support
+          - ✅ VGA text mode with color output
+          - ✅ User management (whoami, listusers)
+          - ✅ Admin/regular user roles with permissions
+          
+          ### 💻 Available Commands
+          ```
+          help       - Show all commands
+          ls         - List directory contents
+          mkdir      - Create directory
+          touch      - Create file
+          cd         - Change directory (use 'cd ..' for parent)
+          pwd        - Print working directory
+          whoami     - Show current user and role
+          listusers  - List all users (admin only)
+          clear      - Clear screen
+          ```
+          
+          ### ⚙️ System Requirements
+          - **Processor**: x86 compatible (32-bit)
+          - **Memory**: 32MB minimum
+          - **Display**: VGA-compatible
+          - **Keyboard**: PS/2 or USB (BIOS compatibility mode)
+          
+          ### 📝 Notes
+          - Changes are not persistent (in-memory filesystem only)
+          - Maximum 256 filesystem entries
+          - Shift key works for capital letters and symbols
+          - 3 login attempts before system halt
           - x86 compatible processor
           - 32MB RAM minimum
           - VGA-compatible display
