@@ -51,9 +51,12 @@
 │ gimmeip               Auto-grab an IP (DHCP)                      │
 │ poke <ip> [count]     Poke a host (default: 5 pokes)              │
 │ wherez <hostname>     Find where a site lives (DNS)               │
+│ vibe <ip> <port>      Connect to remote host (netcat vibes)      │
+│ vibe -l <port>        Listen for incoming connections            │
 │ arp                   See who's on the LAN                        │
 │ netstat               Network stats and vibes                     │
 │ route                 Check the routing table                     │
+│                       (Use CTRL+C to close vibe connection)       │
 └────────────────────────────────────────────────────────────────────┘
 
 ┌─ GUI COMMANDS (Get Visual!) ──────────────────────────────────────┐
@@ -120,7 +123,7 @@
 │ Filesystem:      In-memory (256 entries max)                       │
 │ Authentication:  SHA256 hashing                                    │
 │ Networking:      RTL8139 + e1000 drivers                           │
-│ Protocols:       Ethernet, ARP, IP, UDP, ICMP, DHCP, DNS          │
+│ Protocols:       Ethernet, ARP, IP, TCP, UDP, ICMP, DHCP, DNS     │
 └────────────────────────────────────────────────────────────────────┘
 
 ┌─ PROJECT FILES ───────────────────────────────────────────────────┐
@@ -143,8 +146,7 @@
 │ • No file content storage (just vibes and metadata)                │
 │ • Single-tasking (one thing at a time, like my brain)              │
 │ • US QWERTY keyboard only (sorry international vibers)             │
-│ • No TCP (UDP gang only!)                                          │
-│ • DNS works but can't browse web (yet)                             │
+│ • DNS works, TCP available but no HTTP client (yet)                │
 └────────────────────────────────────────────────────────────────────┘
 
 ┌─ TROUBLESHOOTING ─────────────────────────────────────────────────┐

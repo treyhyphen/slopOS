@@ -156,6 +156,8 @@ route                        # Show routing table
 poke 10.0.2.2                # Send ICMP echo to gateway
 gimmeip                      # Request IP via DHCP
 wherez google.com            # DNS lookup - find where a site lives
+vibe 10.0.2.2 80             # Connect to remote host (netcat-style)
+vibe -l 8080                 # Listen for incoming connections
 ```
 
 Features:
@@ -163,11 +165,13 @@ Features:
 - **Ethernet frame handling** (because we're fancy)
 - **ARP protocol** (resolves IP to MAC addresses)
 - **IP stack** (basic IPv4 support)
+- **TCP protocol** (full connection-oriented communication!)
 - **UDP protocol** (for DHCP and DNS)
 - **ICMP** (responds to ping requests automatically!)
 - **DHCP client** (automatically obtains IP address at boot!)
 - **DNS resolver** (look up domain names!)
 - **Network statistics** (RX/TX packet counts and errors)
+- **Netcat-like tool** (`vibe` command for TCP connections)
 - Automatic configuration via DHCP (10.0.2.15/24 default in QEMU)
 
 To enable networking in QEMU:
@@ -188,6 +192,11 @@ Now you can ping slopOS from your host! Try: `ping 10.0.2.15`
 | `bounce` | Jump to another folder (supports `..`) | `bounce dir` | ⭐⭐ |
 | `whereami` | Where you at in the filesystem? | `whereami` | ⭐ |
 | `me` | Who even are you? | `me` | ⭐⭐⭐⭐ |
+| `mynet` | Check your network setup | `mynet` | ⭐⭐ |
+| `gimmeip` | Grab an IP via DHCP | `gimmeip` | ⭐⭐⭐ |
+| `poke` | Ping a host (default 5 packets) | `poke google.com` | ⭐⭐⭐ |
+| `wherez` | DNS lookup for domain | `wherez github.com` | ⭐⭐⭐ |
+| `vibe` | Connect/listen TCP (netcat vibes) | `vibe -l 8080` | ⭐⭐⭐⭐⭐ |
 | `whosthere` | See all the vibers (admin flex) | `whosthere` | ⭐⭐ |
 | `passwd` | Change password to something you'll forget | `passwd` | ⭐⭐⭐ |
 | `recruit` | Invite a new user who'll be gone on reboot | `recruit bob pass` | ⭐⭐⭐⭐ |

@@ -193,6 +193,71 @@ typedef struct {
     uint16_t checksum;
 } __attribute__((packed)) UDPHeader;
 
+// TCP structures
+typedef struct {
+    uint16_t src_port;
+    uint16_t dest_port;
+    uint32_t seq_num;
+    uint32_t ack_num;
+    uint8_t data_offset;  // Upper 4 bits = offset, lower 4 = reserved
+    uint8_t flags;
+    uint16_t window;
+    uint16_t checksum;
+    uint16_t urgent_ptr;
+} __attribute__((packed)) TCPHeader;
+
+// TCP flags
+#define TCP_FIN  0x01
+#define TCP_SYN  0x02
+#define TCP_RST  0x04
+#define TCP_PSH  0x08
+#define TCP_ACK  0x10
+#define TCP_URG  0x20
+
+// TCP states
+typedef enum {
+    TCP_CLOSED,
+    TCP_LISTEN,
+    TCP_SYN_SENT,
+    TCP_SYN_RECEIVED,
+    TCP_ESTABLISHED,
+    TCP_FIN_WAIT_1,
+    TCP_FIN_WAIT_2,
+    TCP_CLOSE_WAIT,
+    TCP_CLOSING,
+    TCP_LAST_ACK,
+    TCP_TIME_WAIT
+} TCPState;
+
+// TCP connection structure
+#define MAX_TCP_CONNECTIONS 8
+#define TCP_RECV_BUFFER_SIZE 2048
+#define TCP_SEND_BUFFER_SIZE 2048
+
+typedef struct {
+    bool active;
+    TCPState state;
+    uint8_t remote_ip[IP_ADDR_LEN];
+    uint16_t local_port;
+    uint16_t remote_port;
+    
+    // Sequence numbers
+    uint32_t send_seq;
+    uint32_t recv_seq;
+    uint32_t send_ack;
+    
+    // Buffers
+    uint8_t recv_buffer[TCP_RECV_BUFFER_SIZE];
+    uint16_t recv_len;
+    uint8_t send_buffer[TCP_SEND_BUFFER_SIZE];
+    uint16_t send_len;
+    
+    // Flags
+    bool listening;
+    bool fin_received;
+    bool fin_sent;
+} TCPConnection;
+
 typedef struct {
     uint8_t op;
     uint8_t htype;
@@ -298,6 +363,12 @@ NetworkDevice net_device = {0};
 PingState ping_state = {0};
 volatile bool interrupt_command = false;  // Set when CTRL+C is pressed
 static DNSCacheEntry dns_cache[DNS_CACHE_SIZE];
+static TCPConnection tcp_connections[MAX_TCP_CONNECTIONS];
+static uint32_t tcp_isn = 12345;  // Initial sequence number (should be random)
+static uint16_t ip_id_counter = 1;  // IP packet ID counter
+
+// Global TCP connection for vibe command
+static int vibe_conn_id = -1;
 static uint16_t dns_query_id = 1;
 static char dns_current_query[DNS_MAX_NAME];  // Track current query for response handler
 static uint16_t dns_query_port = 0;  // Port used for current DNS query
@@ -512,6 +583,30 @@ void* memset(void* s, int c, size_t n) {
     while (n--)
         *p++ = (uint8_t)c;
     return s;
+}
+
+void* memcpy(void* dest, const void* src, size_t n) {
+    uint8_t* d = dest;
+    const uint8_t* s = src;
+    while (n--)
+        *d++ = *s++;
+    return dest;
+}
+
+void* memmove(void* dest, const void* src, size_t n) {
+    uint8_t* d = dest;
+    const uint8_t* s = src;
+    
+    if (d < s) {
+        while (n--)
+            *d++ = *s++;
+    } else {
+        d += n;
+        s += n;
+        while (n--)
+            *--d = *--s;
+    }
+    return dest;
 }
 
 int memcmp(const void* s1, const void* s2, size_t n) {
@@ -842,11 +937,36 @@ char keyboard_getchar(void) {
     return 0;
 }
 
+// Forward declarations for TCP functions
+bool tcp_is_established(int conn_id);
+int tcp_send_data(int conn_id, uint8_t* data, uint16_t len);
+void tcp_close(int conn_id);
+int tcp_receive_data(int conn_id, uint8_t* buffer, uint16_t max_len);
+void handle_tcp(uint8_t* src_ip, uint8_t* data, uint16_t len);
+void send_ip_packet(uint8_t* dest_ip, uint8_t* packet, uint16_t len);
+uint16_t allocate_ephemeral_port(void);
+void free_ephemeral_port(uint16_t port);
+
 void read_line(char* buffer, size_t max_len) {
     size_t pos = 0;
     int current_history_pos = history_count;  // Start at end of history
     
     while (1) {
+        // Check for CTRL+C interrupt
+        if (interrupt_command) {
+            interrupt_command = false;
+            
+            // If vibe is active, close the connection
+            if (vibe_conn_id >= 0) {
+                terminal_writestring("closing connection...\n");
+                tcp_close(vibe_conn_id);
+                vibe_conn_id = -1;
+            }
+            
+            buffer[0] = '\0';
+            return;
+        }
+        
         char c = keyboard_getchar();
         
         if (c == 0) continue;
@@ -1523,6 +1643,8 @@ void handle_ip(uint8_t* src_mac, uint8_t* data, uint16_t len) {
         handle_icmp(ip->src_ip, src_mac, payload, payload_len);
     } else if (protocol == IPPROTO_UDP) {
         handle_udp(ip->src_ip, payload, payload_len);
+    } else if (protocol == 6) {  // TCP
+        handle_tcp(ip->src_ip, payload, payload_len);
     }
 }
 
@@ -1898,6 +2020,495 @@ void handle_udp(uint8_t* src_ip, uint8_t* data, uint16_t len) {
         terminal_writestring("DNS: Received UDP packet from port 53\n");
         handle_dns_response(payload, payload_len);
     }
+}
+
+// ====================
+// TCP IMPLEMENTATION
+// ====================
+
+// Calculate TCP checksum
+uint16_t tcp_checksum(uint8_t* src_ip, uint8_t* dest_ip, TCPHeader* tcp, uint8_t* data, uint16_t tcp_len) {
+    uint32_t sum = 0;
+    
+    // Pseudo-header: source IP (4 bytes)
+    sum += (src_ip[0] << 8) + src_ip[1];
+    sum += (src_ip[2] << 8) + src_ip[3];
+    
+    // Pseudo-header: destination IP (4 bytes)
+    sum += (dest_ip[0] << 8) + dest_ip[1];
+    sum += (dest_ip[2] << 8) + dest_ip[3];
+    
+    // Pseudo-header: zero + protocol (2 bytes)
+    sum += 6;  // Protocol = TCP
+    
+    // Pseudo-header: TCP length (2 bytes)
+    sum += tcp_len;
+    
+    // TCP header + data as 16-bit words
+    uint16_t* ptr = (uint16_t*)tcp;
+    for (int i = 0; i < tcp_len / 2; i++) {
+        sum += ntohs(ptr[i]);
+    }
+    
+    // Handle odd byte
+    if (tcp_len % 2) {
+        sum += ((uint8_t*)tcp)[tcp_len - 1] << 8;
+    }
+    
+    // Fold 32-bit sum to 16 bits
+    while (sum >> 16) {
+        sum = (sum & 0xFFFF) + (sum >> 16);
+    }
+    
+    return ~sum;
+}
+
+// Find free TCP connection slot
+TCPConnection* tcp_find_free_slot(void) {
+    for (int i = 0; i < MAX_TCP_CONNECTIONS; i++) {
+        if (!tcp_connections[i].active) {
+            memset(&tcp_connections[i], 0, sizeof(TCPConnection));
+            tcp_connections[i].active = true;
+            return &tcp_connections[i];
+        }
+    }
+    return NULL;
+}
+
+// Find TCP connection by port and IP
+TCPConnection* tcp_find_connection(uint16_t local_port, uint16_t remote_port, uint8_t* remote_ip) {
+    for (int i = 0; i < MAX_TCP_CONNECTIONS; i++) {
+        if (tcp_connections[i].active &&
+            tcp_connections[i].local_port == local_port &&
+            tcp_connections[i].remote_port == remote_port &&
+            memcmp(tcp_connections[i].remote_ip, remote_ip, IP_ADDR_LEN) == 0) {
+            return &tcp_connections[i];
+        }
+    }
+    return NULL;
+}
+
+// Find listening connection
+TCPConnection* tcp_find_listener(uint16_t local_port) {
+    for (int i = 0; i < MAX_TCP_CONNECTIONS; i++) {
+        if (tcp_connections[i].active &&
+            tcp_connections[i].listening &&
+            tcp_connections[i].local_port == local_port) {
+            return &tcp_connections[i];
+        }
+    }
+    return NULL;
+}
+
+// Send IP packet (wraps in Ethernet frame)
+void send_ip_packet(uint8_t* dest_ip, uint8_t* packet, uint16_t len) {
+    // Use routing logic to get next hop MAC (gateway for remote, direct for local)
+    uint8_t* dest_mac = route_get_next_hop_mac(dest_ip);
+    if (!dest_mac) {
+        // MAC not in cache - would need to do ARP request
+        // For now, just drop the packet
+        return;
+    }
+    
+    // Build Ethernet frame
+    uint8_t frame[sizeof(EthernetHeader) + len];
+    EthernetHeader* eth = (EthernetHeader*)frame;
+    
+    // Copy source and dest MAC
+    for (int i = 0; i < ETH_ALEN; i++) {
+        eth->dest[i] = dest_mac[i];
+        eth->src[i] = net_device.mac[i];
+    }
+    eth->type = htons(ETH_P_IP);
+    
+    // Copy IP packet
+    for (uint16_t i = 0; i < len; i++) {
+        frame[sizeof(EthernetHeader) + i] = packet[i];
+    }
+    
+    net_send(frame, sizeof(EthernetHeader) + len);
+}
+
+// Send TCP packet
+void tcp_send_packet(TCPConnection* conn, uint8_t flags, uint8_t* data, uint16_t data_len) {
+    uint8_t packet[1500];
+    uint16_t total_len = sizeof(IPHeader) + sizeof(TCPHeader) + data_len;
+    
+    if (total_len > sizeof(packet)) return;
+    
+    // IP header
+    IPHeader* ip = (IPHeader*)packet;
+    ip->version_ihl = 0x45;
+    ip->tos = 0;
+    ip->total_length = htons(total_len);
+    ip->id = htons(ip_id_counter++);
+    ip->flags_fragment = 0;
+    ip->ttl = 64;
+    ip->protocol = 6;  // TCP
+    ip->checksum = 0;
+    memcpy(ip->src_ip, net_device.ip, IP_ADDR_LEN);
+    memcpy(ip->dest_ip, conn->remote_ip, IP_ADDR_LEN);
+    
+    ip->checksum = ip_checksum(ip, sizeof(IPHeader));
+    
+    // TCP header
+    TCPHeader* tcp = (TCPHeader*)(packet + sizeof(IPHeader));
+    tcp->src_port = htons(conn->local_port);
+    tcp->dest_port = htons(conn->remote_port);
+    tcp->seq_num = htonl(conn->send_seq);
+    tcp->ack_num = htonl(conn->send_ack);
+    tcp->data_offset = 0x50;  // 20 bytes, no options
+    tcp->flags = flags;
+    tcp->window = htons(TCP_RECV_BUFFER_SIZE - conn->recv_len);
+    tcp->checksum = 0;
+    tcp->urgent_ptr = 0;
+    
+    // Copy data
+    if (data && data_len > 0) {
+        memcpy(packet + sizeof(IPHeader) + sizeof(TCPHeader), data, data_len);
+    }
+    
+    // Calculate TCP checksum
+    tcp->checksum = htons(tcp_checksum(net_device.ip, conn->remote_ip, tcp, data, sizeof(TCPHeader) + data_len));
+    
+    // Send packet
+    send_ip_packet(conn->remote_ip, packet, total_len);
+    
+    // Update sequence number if we sent data or SYN/FIN
+    if (data_len > 0 || (flags & (TCP_SYN | TCP_FIN))) {
+        conn->send_seq += data_len;
+        if (flags & TCP_SYN) conn->send_seq++;
+        if (flags & TCP_FIN) conn->send_seq++;
+    }
+}
+
+// Handle incoming TCP packet
+void handle_tcp(uint8_t* src_ip, uint8_t* data, uint16_t len) {
+    if (len < sizeof(TCPHeader)) return;
+    
+    TCPHeader* tcp = (TCPHeader*)data;
+    uint16_t src_port = ntohs(tcp->src_port);
+    uint16_t dest_port = ntohs(tcp->dest_port);
+    uint32_t seq = ntohl(tcp->seq_num);
+    uint32_t ack = ntohl(tcp->ack_num);
+    uint8_t flags = tcp->flags;
+    
+    uint8_t header_len = (tcp->data_offset >> 4) * 4;
+    uint8_t* payload = data + header_len;
+    uint16_t payload_len = len - header_len;
+    
+    // Find connection
+    TCPConnection* conn = tcp_find_connection(dest_port, src_port, src_ip);
+    
+    // If no connection, check for listener
+    if (!conn && (flags & TCP_SYN) && !(flags & TCP_ACK)) {
+        TCPConnection* listener = tcp_find_listener(dest_port);
+        if (listener) {
+            // Accept new connection
+            conn = tcp_find_free_slot();
+            if (conn) {
+                conn->local_port = dest_port;
+                conn->remote_port = src_port;
+                memcpy(conn->remote_ip, src_ip, IP_ADDR_LEN);
+                conn->state = TCP_SYN_RECEIVED;
+                conn->recv_seq = seq + 1;
+                conn->send_ack = seq + 1;
+                conn->send_seq = tcp_isn++;
+                
+                // Send SYN-ACK
+                tcp_send_packet(conn, TCP_SYN | TCP_ACK, NULL, 0);
+                return;
+            }
+        }
+        // No listener or no free slots - send RST
+        return;
+    }
+    
+    if (!conn) {
+        // Unknown connection - ignore or send RST
+        return;
+    }
+    
+    // Handle based on state
+    switch (conn->state) {
+        case TCP_SYN_SENT:
+            if ((flags & (TCP_SYN | TCP_ACK)) == (TCP_SYN | TCP_ACK)) {
+                // Received SYN-ACK
+                conn->recv_seq = seq + 1;
+                conn->send_ack = seq + 1;
+                conn->state = TCP_ESTABLISHED;
+                
+                // Send ACK
+                tcp_send_packet(conn, TCP_ACK, NULL, 0);
+            }
+            break;
+            
+        case TCP_SYN_RECEIVED:
+            if (flags & TCP_ACK) {
+                conn->state = TCP_ESTABLISHED;
+            }
+            break;
+            
+        case TCP_ESTABLISHED:
+            // Handle data
+            if (payload_len > 0) {
+                uint16_t space = TCP_RECV_BUFFER_SIZE - conn->recv_len;
+                uint16_t copy_len = (payload_len < space) ? payload_len : space;
+                
+                if (copy_len > 0) {
+                    memcpy(conn->recv_buffer + conn->recv_len, payload, copy_len);
+                    conn->recv_len += copy_len;
+                    conn->recv_seq += copy_len;
+                    conn->send_ack = conn->recv_seq;
+                }
+                
+                // Send ACK
+                tcp_send_packet(conn, TCP_ACK, NULL, 0);
+            }
+            
+            // Handle FIN
+            if (flags & TCP_FIN) {
+                conn->recv_seq++;
+                conn->send_ack = conn->recv_seq;
+                conn->fin_received = true;
+                conn->state = TCP_CLOSE_WAIT;
+                
+                // Send ACK
+                tcp_send_packet(conn, TCP_ACK, NULL, 0);
+            }
+            
+            // Handle ACK for our data
+            if (flags & TCP_ACK) {
+                // Data acknowledged - could clear send buffer here
+            }
+            break;
+            
+        case TCP_FIN_WAIT_1:
+            if (flags & TCP_ACK) {
+                conn->state = TCP_FIN_WAIT_2;
+            }
+            if (flags & TCP_FIN) {
+                conn->recv_seq++;
+                conn->send_ack = conn->recv_seq;
+                tcp_send_packet(conn, TCP_ACK, NULL, 0);
+                conn->state = TCP_TIME_WAIT;
+                // Should wait, then close
+                conn->active = false;
+            }
+            break;
+            
+        case TCP_FIN_WAIT_2:
+            if (flags & TCP_FIN) {
+                conn->recv_seq++;
+                conn->send_ack = conn->recv_seq;
+                tcp_send_packet(conn, TCP_ACK, NULL, 0);
+                conn->state = TCP_TIME_WAIT;
+                conn->active = false;
+            }
+            break;
+            
+        case TCP_CLOSE_WAIT:
+            // Waiting for application to close
+            break;
+            
+        case TCP_LAST_ACK:
+            if (flags & TCP_ACK) {
+                conn->active = false;
+            }
+            break;
+            
+        default:
+            break;
+    }
+}
+
+// ====================
+// TCP API FUNCTIONS
+// ====================
+
+// Connect to remote TCP server
+int tcp_connect(uint8_t* remote_ip, uint16_t remote_port, uint16_t local_port) {
+    // Determine next hop (gateway for remote, direct for local network)
+    uint8_t* arp_target = remote_ip;
+    
+    // Check if destination is on local network
+    bool on_local_network = true;
+    for (int i = 0; i < IP_ADDR_LEN; i++) {
+        if ((remote_ip[i] & net_device.netmask[i]) != (net_device.ip[i] & net_device.netmask[i])) {
+            on_local_network = false;
+            break;
+        }
+    }
+    
+    if (!on_local_network) {
+        if (net_device.gateway[0] == 0) {
+            return -1;  // No gateway configured
+        }
+        arp_target = net_device.gateway;
+    }
+    
+    // Check if we have the MAC address in ARP cache
+    uint8_t* next_hop_mac = arp_lookup(arp_target);
+    if (!next_hop_mac) {
+        // Need to do ARP resolution first
+        arp_send_request(arp_target);
+        
+        // Wait for ARP reply (up to 3 seconds)
+        int arp_attempts = 0;
+        while (!next_hop_mac && arp_attempts < 30) {
+            net_poll();
+            next_hop_mac = arp_lookup(arp_target);
+            if (next_hop_mac) break;
+            
+            delay_ms(100);  // 100ms delay per attempt
+            arp_attempts++;
+        }
+        
+        if (!next_hop_mac) {
+            return -1;  // ARP failed
+        }
+    }
+    
+    // Find free connection slot
+    TCPConnection* conn = tcp_find_free_slot();
+    if (!conn) {
+        return -1;  // No free slots
+    }
+    
+    // Initialize connection
+    memcpy(conn->remote_ip, remote_ip, IP_ADDR_LEN);
+    conn->remote_port = remote_port;
+    conn->local_port = local_port ? local_port : allocate_ephemeral_port();
+    conn->state = TCP_SYN_SENT;
+    conn->send_seq = tcp_isn++;
+    conn->send_ack = 0;
+    conn->recv_seq = 0;
+    conn->recv_len = 0;
+    conn->send_len = 0;
+    conn->listening = false;
+    conn->fin_received = false;
+    
+    // Send SYN
+    tcp_send_packet(conn, TCP_SYN, NULL, 0);
+    
+    // Return connection ID
+    return conn - tcp_connections;
+}
+
+// Listen on local port
+int tcp_listen(uint16_t local_port) {
+    // Check if already listening
+    if (tcp_find_listener(local_port)) {
+        return -1;  // Already listening
+    }
+    
+    // Find free connection slot
+    TCPConnection* conn = tcp_find_free_slot();
+    if (!conn) {
+        return -1;  // No free slots
+    }
+    
+    // Initialize listener
+    conn->local_port = local_port;
+    conn->state = TCP_LISTEN;
+    conn->listening = true;
+    
+    // Return connection ID
+    return conn - tcp_connections;
+}
+
+// Send data on established connection
+int tcp_send_data(int conn_id, uint8_t* data, uint16_t len) {
+    if (conn_id < 0 || conn_id >= MAX_TCP_CONNECTIONS) {
+        return -1;
+    }
+    
+    TCPConnection* conn = &tcp_connections[conn_id];
+    
+    if (!conn->active || conn->state != TCP_ESTABLISHED) {
+        return -1;
+    }
+    
+    // Send packet with data
+    tcp_send_packet(conn, TCP_ACK | TCP_PSH, data, len);
+    
+    return len;
+}
+
+// Receive data from connection
+int tcp_receive_data(int conn_id, uint8_t* buffer, uint16_t max_len) {
+    if (conn_id < 0 || conn_id >= MAX_TCP_CONNECTIONS) {
+        return -1;
+    }
+    
+    TCPConnection* conn = &tcp_connections[conn_id];
+    
+    if (!conn->active) {
+        return -1;
+    }
+    
+    uint16_t copy_len = (conn->recv_len < max_len) ? conn->recv_len : max_len;
+    
+    if (copy_len > 0) {
+        memcpy(buffer, conn->recv_buffer, copy_len);
+        
+        // Shift remaining data
+        if (copy_len < conn->recv_len) {
+            memmove(conn->recv_buffer, conn->recv_buffer + copy_len, conn->recv_len - copy_len);
+        }
+        
+        conn->recv_len -= copy_len;
+    }
+    
+    return copy_len;
+}
+
+// Close TCP connection
+void tcp_close(int conn_id) {
+    if (conn_id < 0 || conn_id >= MAX_TCP_CONNECTIONS) {
+        return;
+    }
+    
+    TCPConnection* conn = &tcp_connections[conn_id];
+    
+    if (!conn->active) {
+        return;
+    }
+    
+    if (conn->state == TCP_ESTABLISHED) {
+        // Send FIN
+        tcp_send_packet(conn, TCP_FIN | TCP_ACK, NULL, 0);
+        conn->state = TCP_FIN_WAIT_1;
+    } else if (conn->state == TCP_CLOSE_WAIT) {
+        // Send FIN
+        tcp_send_packet(conn, TCP_FIN | TCP_ACK, NULL, 0);
+        conn->state = TCP_LAST_ACK;
+    } else {
+        // Just close
+        if (conn->local_port >= 49152) {
+            free_ephemeral_port(conn->local_port);
+        }
+        conn->active = false;
+    }
+}
+
+// Check if connection is established
+bool tcp_is_established(int conn_id) {
+    if (conn_id < 0 || conn_id >= MAX_TCP_CONNECTIONS) {
+        return false;
+    }
+    
+    return tcp_connections[conn_id].active && 
+           tcp_connections[conn_id].state == TCP_ESTABLISHED;
+}
+
+// Get connection state
+TCPState tcp_get_state(int conn_id) {
+    if (conn_id < 0 || conn_id >= MAX_TCP_CONNECTIONS) {
+        return TCP_CLOSED;
+    }
+    
+    return tcp_connections[conn_id].state;
 }
 
 // ====================
@@ -3035,6 +3646,226 @@ void cmd_nslookup(const char* hostname) {
     }
 }
 
+void cmd_vibe(char* arg1, char* arg2) {
+    if (!net_device.initialized) {
+        terminal_writestring("yo network ain't ready yet\n");
+        return;
+    }
+    
+    // Check for listen mode: vibe -l <port>
+    if (arg1 && strcmp(arg1, "-l") == 0) {
+        if (!arg2) {
+            terminal_writestring("Usage: vibe -l <port>\n");
+            return;
+        }
+        
+        int port = atoi(arg2);
+        if (port <= 0 || port > 65535) {
+            terminal_writestring("nah that port number's bogus\n");
+            return;
+        }
+        
+        int conn_id = tcp_listen(port);
+        if (conn_id < 0) {
+            terminal_writestring("couldn't start vibing on that port\n");
+            return;
+        }
+        
+        vibe_conn_id = conn_id;
+        terminal_writestring("aight we vibing on port ");
+        char buf[16];
+        itoa_helper(port, buf);
+        terminal_writestring(buf);
+        terminal_writestring(" ... waiting for connections\n");
+        terminal_writestring("(hit CTRL+C to bail)\n");
+        return;
+    }
+    
+    // Connect mode: vibe <ip> <port>
+    if (!arg1 || !arg2) {
+        terminal_writestring("Usage:\n");
+        terminal_writestring("  vibe <ip> <port>     - connect to remote host\n");
+        terminal_writestring("  vibe -l <port>       - listen on local port\n");
+        return;
+    }
+    
+    // Parse IP address
+    uint8_t remote_ip[IP_ADDR_LEN];
+    int parts[4];
+    int count = 0;
+    char* tok = arg1;
+    
+    for (int i = 0; i < 4; i++) {
+        char* dot = strchr(tok, '.');
+        if (i < 3 && !dot) {
+            terminal_writestring("invalid IP address format\n");
+            return;
+        }
+        
+        if (dot) *dot = '\0';
+        parts[count++] = atoi(tok);
+        if (dot) {
+            *dot = '.';
+            tok = dot + 1;
+        }
+    }
+    
+    if (count != 4) {
+        terminal_writestring("invalid IP address\n");
+        return;
+    }
+    
+    for (int i = 0; i < 4; i++) {
+        remote_ip[i] = parts[i];
+    }
+    
+    int port = atoi(arg2);
+    if (port <= 0 || port > 65535) {
+        terminal_writestring("nah that port number's bogus\n");
+        return;
+    }
+    
+    terminal_writestring("tryna vibe with ");
+    terminal_writestring(arg1);
+    terminal_writestring(":");
+    char buf[16];
+    itoa_helper(port, buf);
+    terminal_writestring(buf);
+    terminal_writestring("...\n");
+    
+    terminal_writestring("resolving MAC address...\n");
+    
+    int conn_id = tcp_connect(remote_ip, port, 0);
+    if (conn_id < 0) {
+        terminal_writestring("couldn't make the connection happen (ARP failed or no slots)\n");
+        terminal_writestring("make sure you ran 'gimmeip' and can 'poke' the gateway first\n");
+        return;
+    }
+    
+    terminal_writestring("MAC resolved! ");
+    vibe_conn_id = conn_id;
+    
+    // Wait a bit for connection to establish
+    terminal_writestring("sending SYN, waiting for handshake...\n");
+    
+    // Poll for connection - need to call net_poll() to process packets!
+    for (int i = 0; i < 50; i++) {  // 5 seconds max (50 * 100ms)
+        // Process incoming packets
+        net_poll();
+        
+        if (tcp_is_established(conn_id)) {
+            terminal_writestring("ayy we connected! start typing (CTRL+C to bail)\n");
+            
+            // Enter interactive mode - stay in a loop sending data
+            char line_buffer[MAX_CMD_LEN];
+            while (tcp_is_established(conn_id)) {
+                size_t pos = 0;
+                
+                // Read a line of input
+                while (1) {
+                    // Check for CTRL+C
+                    if (interrupt_command) {
+                        interrupt_command = false;
+                        terminal_writestring("\nclosing connection...\n");
+                        tcp_close(conn_id);
+                        vibe_conn_id = -1;
+                        return;
+                    }
+                    
+                    // Poll for incoming data while waiting for input
+                    net_poll();
+                    uint8_t recv_buffer[256];
+                    int recv_len = tcp_receive_data(conn_id, recv_buffer, sizeof(recv_buffer));
+                    if (recv_len > 0) {
+                        // Display received data (character by character for safety)
+                        for (int i = 0; i < recv_len; i++) {
+                            char c = recv_buffer[i];
+                            // Print printable characters, newlines, and carriage returns
+                            if (c >= 32 && c < 127) {
+                                terminal_putchar(c);
+                            } else if (c == '\n') {
+                                terminal_putchar('\n');
+                            } else if (c == '\r') {
+                                terminal_putchar('\r');
+                            } else if (c == '\t') {
+                                terminal_putchar('\t');
+                            }
+                            // Skip other control characters
+                        }
+                    }
+                    
+                    // Check for keyboard input
+                    char c = keyboard_getchar();
+                    if (c == 0) {
+                        // Small delay to avoid busy-waiting
+                        delay_ms(10);
+                        continue;
+                    }
+                    
+                    if (c == '\n') {
+                        terminal_putchar('\n');
+                        line_buffer[pos] = '\0';
+                        
+                        // Send the line
+                        if (pos > 0) {
+                            line_buffer[pos] = '\n';
+                            tcp_send_data(conn_id, (uint8_t*)line_buffer, pos + 1);
+                        }
+                        
+                        // After sending, check for any immediate response
+                        for (int i = 0; i < 10; i++) {
+                            net_poll();
+                            uint8_t resp_buffer[256];
+                            int resp_len = tcp_receive_data(conn_id, resp_buffer, sizeof(resp_buffer));
+                            if (resp_len > 0) {
+                                // Display received data
+                                for (int j = 0; j < resp_len; j++) {
+                                    char c = resp_buffer[j];
+                                    if (c >= 32 && c < 127) {
+                                        terminal_putchar(c);
+                                    } else if (c == '\n') {
+                                        terminal_putchar('\n');
+                                    } else if (c == '\r') {
+                                        terminal_putchar('\r');
+                                    } else if (c == '\t') {
+                                        terminal_putchar('\t');
+                                    }
+                                }
+                            }
+                            delay_ms(10);
+                        }
+                        break;
+                    }
+                    
+                    if (c == '\b') {
+                        if (pos > 0) {
+                            terminal_putchar('\b');
+                            pos--;
+                        }
+                    } else if (c >= 32 && c < 127 && pos < MAX_CMD_LEN - 1) {
+                        terminal_putchar(c);
+                        line_buffer[pos++] = c;
+                    }
+                }
+            }
+            
+            terminal_writestring("connection closed\n");
+            vibe_conn_id = -1;
+            return;
+        }
+        
+        // 100ms delay between polls
+        delay_ms(100);
+    }
+    
+    TCPState state = tcp_get_state(conn_id);
+    if (state != TCP_ESTABLISHED) {
+        terminal_writestring("connection timed out or rejected\n");
+        tcp_close(conn_id);
+        vibe_conn_id = -1;
+    }
+}
+
 void cmd_dhcp(void) {
     if (!net_device.initialized) {
         terminal_writestring("Network device not initialized\n");
@@ -3170,6 +4001,10 @@ void process_command(char* line) {
         } else {
             cmd_nslookup(hostname);
         }
+    } else if (strcmp(cmd, "vibe") == 0) {
+        char* arg1 = strtok(NULL, " ");
+        char* arg2 = strtok(NULL, " ");
+        cmd_vibe(arg1, arg2);
     } else if (strcmp(cmd, "passwd") == 0) {
         cmd_passwd();
     } else if (strcmp(cmd, "recruit") == 0) {
@@ -3378,6 +4213,16 @@ void kernel_main(void) {
     while (1) {
         // Poll network for incoming packets
         net_poll();
+        
+        // Check for TCP data when vibe is active
+        if (vibe_conn_id >= 0 && tcp_is_established(vibe_conn_id)) {
+            uint8_t recv_buf[256];
+            int received = tcp_receive_data(vibe_conn_id, recv_buf, sizeof(recv_buf) - 1);
+            if (received > 0) {
+                recv_buf[received] = '\0';
+                terminal_writestring((char*)recv_buf);
+            }
+        }
         
         // In GUI mode, render windows BEFORE prompt to prevent overwriting
         if (gui_mode) {
