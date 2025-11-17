@@ -29,20 +29,32 @@ Everything except this specific section of the readme was entirely vibed togethe
 - ⬆️⬇️ **Command history!** (Up/Down arrows work, we're basically professionals now)
 - 👥 **Multi-user system!** (admin vs regular user, very serious business)
 - 🪟 **Window manager!** (made entirely of `+`, `-`, and `|` characters)
+- 🌐 **Networking stack!** (Ethernet, IP, ARP, ICMP, UDP, DHCP - full TCP/IP!)
+- 🔌 **Modular network drivers!** (RTL8139 + e1000, easily extensible)
 
 ## 🚀 Quick Start (or "How to Waste 5 Minutes")
 
 ### Building This Masterpiece
 
+**⚠️ Important**: Use `Makefile.kernel` to build the bootable ISO with networking!
+
 ```bash
-# Build the simulator (if you're scared of real hardware)
+# Build the simulator (command-line version, no networking)
 make
 
-# Build the actual bootable ISO (you brave soul)
-make -f Makefile.simple clean all iso
+# Build the actual bootable ISO with DHCP support ✨
+make -f Makefile.kernel clean all iso
 
-# Test in QEMU (safe)
+# Test in QEMU (basic, no networking)
 qemu-system-i386 -cdrom slopos.iso -m 32M
+
+# Test with networking + DHCP (recommended!)
+qemu-system-i386 -cdrom slopos.iso -m 32M \
+    -netdev user,id=net0 \
+    -device rtl8139,netdev=net0
+
+# Or use the test script
+./test-dhcp.sh
 
 # Or burn to USB and pray (DANGEROUS ⚠️)
 sudo dd if=slopos.iso of=/dev/sdX bs=4M
@@ -55,6 +67,9 @@ sudo dd if=slopos.iso of=/dev/sdX bs=4M
 - **Admin**: username `admin`, password `slopOS123` (very secure, much wow)
 - **Regular User**: username `user`, password `password` (maximum creativity)
 
+### Networking Note
+slopOS now includes **DHCP client support**! It will automatically attempt to obtain an IP address at boot. If DHCP fails, you can manually run the `dhcp` command to retry.
+
 ### Your First Commands
 
 ```bash
@@ -65,6 +80,8 @@ cd memes          # Enter the void
 touch dank.txt    # Create a "file" (it's just metadata, calm down)
 pwd               # "Where am I? Who am I?"
 whoami            # Existential crisis simulator
+ifconfig          # Check your network configuration
+ping 10.0.2.2     # Ping the QEMU gateway (if networking is enabled)
 ```
 
 ## 📦 Features That Will Make You Question Everything
@@ -127,6 +144,34 @@ listusers                     # See all the users (admin only)
 
 *Note: Can't delete yourself. We're not THAT chaotic.*
 
+### 🌐 Networking Stack
+A real networking implementation for your volatile RAM OS:
+
+```bash
+ifconfig                      # Show network configuration
+arp                          # Display ARP cache
+netstat                      # Show network statistics
+ping 10.0.2.2                # Send ICMP echo to gateway
+```
+
+Features:
+- **RTL8139 driver** (automatically detected via PCI enumeration)
+- **Ethernet frame handling** (because we're fancy)
+- **ARP protocol** (resolves IP to MAC addresses)
+- **IP stack** (basic IPv4 support)
+- **UDP protocol** (for DHCP and future protocols)
+- **ICMP** (responds to ping requests automatically!)
+- **DHCP client** (automatically obtains IP address at boot!)
+- **Network statistics** (RX/TX packet counts and errors)
+- Automatic configuration via DHCP (10.0.2.15/24 default in QEMU)
+
+To enable networking in QEMU:
+```bash
+qemu-system-i386 -cdrom slopos.iso -m 32M -netdev user,id=net0 -device rtl8139,netdev=net0
+```
+
+Now you can ping slopOS from your host! Try: `ping 10.0.2.15`
+
 ## 🎮 All Available Commands
 
 | Command | What It Do | Example | Chaos Level |
@@ -149,6 +194,11 @@ listusers                     # See all the users (admin only)
 | `listwin` | Admire your ASCII art | `listwin` | ⭐⭐ |
 | `writewin` | Put text in window | `writewin 1 "hi"` | ⭐⭐⭐ |
 | `exitgui` | Escape the Matrix | `exitgui` | ⭐⭐⭐⭐⭐ |
+| `ifconfig` | Show network config | `ifconfig` | ⭐⭐ |
+| `dhcp` | Request IP via DHCP | `dhcp` | ⭐⭐⭐ |
+| `arp` | Display ARP cache | `arp` | ⭐⭐ |
+| `netstat` | Show network stats | `netstat` | ⭐⭐ |
+| `ping` | Send ICMP echo | `ping 10.0.2.2` | ⭐⭐⭐ |
 | `clear` | Make the bad thoughts go away | `clear` | ⭐⭐⭐⭐⭐ |
 
 **Arrow Keys**: ⬆️ = previous command, ⬇️ = next command (stores up to 50, because we're not animals)
@@ -162,7 +212,9 @@ listusers                     # See all the users (admin only)
 - **Keyboard**: PS/2 I/O ports (scancode translation? we got you)
 - **Filesystem**: In-memory linked list (256 entries max, we're not Google)
 - **Security**: SHA256-simple (we implemented our own, probably broken)
-- **Kernel Size**: 32KB (smol bean)
+- **Networking**: RTL8139 driver with Ethernet/IP/ARP/ICMP support
+- **Network Protocols**: ARP, IPv4, UDP, ICMP (ping!), DHCP client
+- **Kernel Size**: ~45KB (still a smol bean)
 - **ISO Size**: 5MB (most of it is GRUB)
 
 ## 📁 What's In The Box?
@@ -224,6 +276,9 @@ qemu-system-i386 -cdrom slopos.iso -m 32M
 - 🔒 **Security**: We hash passwords for a filesystem that doesn't exist
 - 🪟 **GUI**: "Graphics" made of ASCII characters
 - 🔄 **Multitasking**: One thing at a time, like my brain
+- 🌐 **Networking**: Only works in QEMU with RTL8139 emulation
+- 📡 **Protocols**: TCP? Never heard of it. UDP and ICMP only!
+- 🔧 **DHCP**: Works great in QEMU user networking mode
 
 ## 🎓 What You'll Learn
 
@@ -235,6 +290,12 @@ qemu-system-i386 -cdrom slopos.iso -m 32M
 - How to draw windows with ASCII characters
 - That implementing `cd ..` is harder than it looks
 - Arrow key command history (actually useful)
+- PCI device enumeration (finding hardware the hard way)
+- Network packet parsing (Ethernet frames are fun!)
+- Writing a network driver (RTL8139 isn't too bad actually)
+- Why ARP exists (IP addresses need MAC addresses)
+- DHCP protocol (DISCOVER, OFFER, REQUEST, ACK dance)
+- UDP implementation (simpler than TCP, still useful)
 
 ## 🤝 Contributing
 
@@ -248,6 +309,10 @@ Things that would make slopOS marginally less useless:
 - [ ] A better GUI (ASCII art is sacred though)
 - [ ] Actual file operations (read/write/edit)
 - [ ] Tab completion (fancy!)
+- [ ] TCP/UDP support (ambitious!)
+- [ ] DHCP client (no more hardcoded IPs)
+- [x] ~~DHCP client~~ (WE DID IT!)
+- [ ] DNS resolver (remember IP addresses? me neither)
 - [ ] More jokes in this README
 
 ## 📜 License
@@ -280,6 +345,8 @@ Features:
 - Accepts input (usually)
 - Displays output (mostly)
 - Doesn't catch fire (yet)
+- Responds to pings (if you're lucky)
+- Gets its own IP via DHCP (automatically!)
 
 ---
 

@@ -7,10 +7,10 @@
 #include "commands.h"
 
 // Configuration constants
-#define MAX_NAME 32
-#define MAX_ENTRIES 100
+#define MAX_NAME 64
+#define MAX_ENTRIES 256
 #define MAX_USERS 16
-#define MAX_PASSWORD 64
+#define MAX_PASSWORD 32
 #define SHA256_DIGEST_LENGTH 32
 #define MAX_WINDOWS 8
 #define SCREEN_WIDTH 80
@@ -118,22 +118,21 @@ enum vga_color {
 };
 
 // Entry types
-typedef enum { FILE_ENTRY = 0, DIR_ENTRY = 1 } EntryType;
+typedef enum { FILE_ENTRY, DIR_ENTRY } EntryType;
 
-// Filesystem entry - MUST match kernel_api.h!
-typedef struct {
-    char name[MAX_NAME];      // 32 bytes
-    int type;                  // 4 bytes
-    int parent;                // 4 bytes  
-    int first_child;           // 4 bytes
-    int next_sibling;          // 4 bytes
-    char content[512];         // 512 bytes
-} Entry;  // Total: 560 bytes
+// Filesystem entry
+typedef struct Entry {
+    char name[MAX_NAME];
+    EntryType type;
+    int parent;
+    int first_child;
+    int next_sibling;
+} Entry;
 
-// User structure (internal, matching kernel_api.h)
+// User structure
 typedef struct User {
     char username[MAX_NAME];
-    char password_hash[MAX_PASSWORD];
+    uint8_t password_hash[SHA256_DIGEST_LENGTH];
     bool is_admin;
     bool active;
 } User;
@@ -252,11 +251,9 @@ typedef struct {
 
 typedef struct Window {
     int id;
-    bool active;
-    int x, y, width, height;
-    char title[64];
-    char content[1024];
-    int content_len;
+    char title[MAX_NAME];
+    int x, y;
+    int width, height;
     bool visible;
     bool focused;
     char buffer[1024];
@@ -296,7 +293,6 @@ bool gui_mode = false;
 int next_window_id = 1;
 NetworkDevice net_device = {0};
 PingState ping_state = {0};
-volatile bool interrupt_command = false;  // Set when CTRL+C is pressed
 static DNSCacheEntry dns_cache[DNS_CACHE_SIZE];
 static uint16_t dns_query_id = 1;
 static char dns_current_query[DNS_MAX_NAME];  // Track current query for response handler
@@ -604,18 +600,6 @@ void terminal_putentryat(char c, uint8_t color, size_t x, size_t y) {
 }
 
 void terminal_scroll(void) {
-    // In GUI mode, don't scroll - just wrap to bottom line
-    if (gui_mode) {
-        terminal_row = VGA_HEIGHT - 1;
-        terminal_column = 0;
-        // Clear the bottom line
-        for (size_t x = 0; x < VGA_WIDTH; x++) {
-            terminal_buffer[(VGA_HEIGHT - 1) * VGA_WIDTH + x] = vga_entry(' ', terminal_color);
-        }
-        return;
-    }
-    
-    // Normal scrolling for non-GUI mode
     for (size_t y = 0; y < VGA_HEIGHT - 1; y++) {
         for (size_t x = 0; x < VGA_WIDTH; x++) {
             terminal_buffer[y * VGA_WIDTH + x] = terminal_buffer[(y + 1) * VGA_WIDTH + x];
@@ -674,14 +658,13 @@ void clear_screen(void) {
 void draw_window(Window* win) {
     if (!win->visible) return;
     
-    // Use highly visible colors - white text on blue background for focused
     uint8_t win_color = win->focused ? 
         vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLUE) :
-        vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_CYAN);
+        vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
     
-    // Draw top border with title using solid characters
+    // Draw top border with title
     for (int x = 0; x < win->width && (win->x + x) < VGA_WIDTH; x++) {
-        char c = '=';  // Use = for top border
+        char c = (x == 0) ? '+' : (x == win->width - 1) ? '+' : '-';
         if (x > 0 && x < win->width - 1 && x - 1 < (int)strlen(win->title)) {
             c = win->title[x - 1];
         }
@@ -715,7 +698,7 @@ void draw_window(Window* win) {
     int bottom_y = win->y + win->height - 1;
     if (bottom_y < VGA_HEIGHT) {
         for (int x = 0; x < win->width && (win->x + x) < VGA_WIDTH; x++) {
-            char c = '=';  // Use = for bottom border
+            char c = (x == 0) ? '+' : (x == win->width - 1) ? '+' : '-';
             terminal_putentryat(c, win_color, win->x + x, bottom_y);
         }
     }
@@ -745,8 +728,6 @@ void render_all_windows(void) {
 // Keyboard scancodes
 #define KEY_LSHIFT 0x2A
 #define KEY_RSHIFT 0x36
-#define KEY_LCTRL 0x1D
-#define KEY_C 0x2E
 
 // Scancode to ASCII mapping (without shift)
 static const char scancode_to_ascii[128] = {
@@ -768,7 +749,6 @@ static const char scancode_to_ascii_shift[128] = {
 
 // Track shift key state and extended scancode
 static bool shift_pressed = false;
-static bool ctrl_pressed = false;
 static bool extended = false;
 
 char keyboard_getchar(void) {
@@ -794,25 +774,6 @@ char keyboard_getchar(void) {
         if (scancode == KEY_DOWN_ARROW) {
             return SPECIAL_DOWN_ARROW;
         }
-        return 0;
-    }
-    
-    // Handle CTRL key press
-    if (scancode == KEY_LCTRL) {
-        ctrl_pressed = true;
-        return 0;
-    }
-    
-    // Handle CTRL key release
-    if (scancode == (KEY_LCTRL | 0x80)) {
-        ctrl_pressed = false;
-        return 0;
-    }
-    
-    // Handle CTRL+C interrupt
-    if (ctrl_pressed && scancode == KEY_C) {
-        interrupt_command = true;
-        terminal_writestring("^C\n");
         return 0;
     }
     
@@ -1150,10 +1111,6 @@ bool dhcp_client_run(void) {
         int wait_attempts = 0;
         bool offer_received = false;
         while (wait_attempts < 3000 && !net_device.dhcp_configured) {
-            if (interrupt_command) {
-                terminal_writestring("\nInterrupted\n");
-                return false;
-            }
             net_poll();
             
             // Check if we somehow got fully configured already (fast server)
@@ -1188,10 +1145,6 @@ bool dhcp_client_run(void) {
         terminal_writestring("  DHCP: Waiting for ACK");
         wait_attempts = 0;
         while (wait_attempts < 3000 && !net_device.dhcp_configured) {
-            if (interrupt_command) {
-                terminal_writestring("\nInterrupted\n");
-                return false;
-            }
             net_poll();
             
             if (net_device.dhcp_configured) {
@@ -2317,15 +2270,6 @@ bool dns_resolve(const char* name, uint8_t* ip) {
     int attempts = 0;
     bool success = false;
     while (attempts < 500) {
-        if (interrupt_command) {
-            terminal_writestring("DNS: Interrupted\n");
-            // Free the allocated port
-            if (dns_query_port != 0) {
-                free_ephemeral_port(dns_query_port);
-                dns_query_port = 0;
-            }
-            return false;
-        }
         net_poll();
         delay_ms(10);
         attempts++;
@@ -2353,17 +2297,15 @@ bool dns_resolve(const char* name, uint8_t* ip) {
 // FILESYSTEM
 // ====================
 
-int alloc_entry(const char* name, int type, int parent) {
+int alloc_entry(const char* name, EntryType type, int parent) {
     if (entry_count >= MAX_ENTRIES) return -1;
     int idx = entry_count++;
-    
+    memset(&entries[idx], 0, sizeof(Entry));
     strncpy(entries[idx].name, name, MAX_NAME - 1);
-    entries[idx].name[MAX_NAME - 1] = '\0';
     entries[idx].type = type;
     entries[idx].parent = parent;
     entries[idx].first_child = -1;
     entries[idx].next_sibling = -1;
-    
     return idx;
 }
 
@@ -2379,33 +2321,12 @@ int find_child_by_name(int dir_idx, const char* name) {
 
 int add_child(int dir_idx, int child_idx) {
     if (dir_idx < 0 || dir_idx >= entry_count) return -1;
-    if (child_idx < 0 || child_idx >= entry_count) return -1;
-    
-    // Prevent adding a directory as its own child
-    if (dir_idx == child_idx) return -1;
-    
-    // Check if this child is already in the list
-    int check = entries[dir_idx].first_child;
-    while (check != -1) {
-        if (check == child_idx) return -1;
-        check = entries[check].next_sibling;
-    }
-    
     entries[child_idx].next_sibling = entries[dir_idx].first_child;
     entries[dir_idx].first_child = child_idx;
-    
     return 0;
 }
 
 void init_fs(void) {
-    // Initialize all entries
-    for (int i = 0; i < MAX_ENTRIES; i++) {
-        entries[i].first_child = -1;
-        entries[i].next_sibling = -1;
-        entries[i].parent = -1;
-        entries[i].name[0] = '\0';
-    }
-    
     entry_count = 0;
     int root = alloc_entry("/", DIR_ENTRY, -1);
     cwd = root;
@@ -2530,17 +2451,233 @@ bool is_current_user_admin(void) {
 // --------------------
 // Help Command
 // --------------------
-// Moved to kernel/commands/help_command.c
+
+void cmd_help(void) {
+    terminal_writestring("Available commands:\n");
+    terminal_writestring("  ls             - list directory contents\n");
+    terminal_writestring("  mkdir <name>   - create directory\n");
+    terminal_writestring("  touch <name>   - create file\n");
+    terminal_writestring("  cd <name|..>   - change directory\n");
+    terminal_writestring("  pwd            - print working directory\n");
+    terminal_writestring("  whoami         - show current user\n");
+    if (is_current_user_admin()) {
+        terminal_writestring("  listusers      - list all users (admin)\n");
+        terminal_writestring("  adduser        - add new user (admin)\n");
+        terminal_writestring("  deluser        - delete user (admin)\n");
+    }
+    terminal_writestring("  passwd         - change password\n");
+    terminal_writestring("  ifconfig       - show network configuration\n");
+    terminal_writestring("  dhcp           - request IP via DHCP\n");
+    terminal_writestring("  arp            - show ARP cache\n");
+    terminal_writestring("  netstat        - show network statistics\n");
+    terminal_writestring("  route          - show routing table\n");
+    terminal_writestring("  ping <ip|host> [count] - send ICMP echo (default: 5 pings)\n");
+    terminal_writestring("  nslookup <host> - resolve domain name via DNS\n");
+    if (!gui_mode) {
+        terminal_writestring("  startgui       - start GUI mode\n");
+    } else {
+        terminal_writestring("  newwin         - create new window\n");
+        terminal_writestring("  closewin       - close window\n");
+        terminal_writestring("  focuswin       - focus window\n");
+        terminal_writestring("  listwin        - list windows\n");
+        terminal_writestring("  writewin       - write to window\n");
+        terminal_writestring("  exitgui        - exit GUI mode\n");
+    }
+    terminal_writestring("  clear          - clear screen\n");
+    terminal_writestring("  help           - show this help\n");
+}
 
 // --------------------
 // Filesystem Commands
 // --------------------
-// Moved to kernel/commands/fs_commands.c
 
-// --------------------
-// User Commands  
-// --------------------
-// Moved to kernel/commands/user_commands.c
+void cmd_ls(void) {
+    int i = entries[cwd].first_child;
+    if (i == -1) {
+        terminal_writestring("(empty directory)\n");
+        return;
+    }
+    while (i != -1) {
+        terminal_putchar(entries[i].type == DIR_ENTRY ? 'd' : '-');
+        terminal_writestring(" ");
+        terminal_writestring(entries[i].name);
+        terminal_writestring("\n");
+        i = entries[i].next_sibling;
+    }
+}
+
+void cmd_mkdir(const char* name) {
+    if (find_child_by_name(cwd, name) != -1) {
+        terminal_writestring("Error: entry already exists\n");
+        return;
+    }
+    int idx = alloc_entry(name, DIR_ENTRY, cwd);
+    if (idx < 0) {
+        terminal_writestring("Error: filesystem full\n");
+        return;
+    }
+    add_child(cwd, idx);
+    terminal_writestring("Directory created\n");
+}
+
+void cmd_touch(const char* name) {
+    if (find_child_by_name(cwd, name) != -1) {
+        terminal_writestring("Error: entry already exists\n");
+        return;
+    }
+    int idx = alloc_entry(name, FILE_ENTRY, cwd);
+    if (idx < 0) {
+        terminal_writestring("Error: filesystem full\n");
+        return;
+    }
+    add_child(cwd, idx);
+    terminal_writestring("File created\n");
+}
+
+void cmd_cd(const char* name) {
+    if (strcmp(name, "..") == 0) {
+        if (entries[cwd].parent != -1)
+            cwd = entries[cwd].parent;
+        return;
+    }
+    int idx = find_child_by_name(cwd, name);
+    if (idx == -1) {
+        terminal_writestring("No such directory\n");
+        return;
+    }
+    if (entries[idx].type != DIR_ENTRY) {
+        terminal_writestring("Not a directory\n");
+        return;
+    }
+    cwd = idx;
+}
+
+void cmd_pwd_recursive(int idx) {
+    if (entries[idx].parent != -1) {
+        cmd_pwd_recursive(entries[idx].parent);
+        if (idx != 0) {
+            terminal_writestring("/");
+            terminal_writestring(entries[idx].name);
+        }
+    } else {
+        terminal_writestring("/");
+    }
+}
+
+void cmd_pwd(void) {
+    cmd_pwd_recursive(cwd);
+    terminal_writestring("\n");
+}
+
+void cmd_whoami(void) {
+    terminal_writestring(get_current_username());
+    if (is_current_user_admin()) {
+        terminal_writestring(" (administrator)");
+    }
+    terminal_writestring("\n");
+}
+
+void cmd_listusers(void) {
+    if (!is_current_user_admin()) {
+        terminal_writestring("Permission denied\n");
+        return;
+    }
+    
+    terminal_writestring("Active users:\n");
+    for (int i = 0; i < auth.user_count; i++) {
+        if (auth.users[i].active) {
+            terminal_writestring("  ");
+            terminal_writestring(auth.users[i].username);
+            terminal_writestring(auth.users[i].is_admin ? " (admin)" : " (user)");
+            if (i == auth.current_user)
+                terminal_writestring(" [current]");
+            terminal_writestring("\n");
+        }
+    }
+}
+
+void cmd_passwd(void) {
+    char oldpass[MAX_PASSWORD];
+    char newpass[MAX_PASSWORD];
+    char confirm[MAX_PASSWORD];
+    
+    terminal_writestring("Old password: ");
+    read_line(oldpass, sizeof(oldpass));
+    
+    if (!verify_password(auth.current_user, oldpass)) {
+        terminal_writestring("Incorrect password\n");
+        memset(oldpass, 0, sizeof(oldpass));
+        return;
+    }
+    
+    terminal_writestring("New password: ");
+    read_line(newpass, sizeof(newpass));
+    
+    terminal_writestring("Confirm password: ");
+    read_line(confirm, sizeof(confirm));
+    
+    if (strcmp(newpass, confirm) != 0) {
+        terminal_writestring("Passwords do not match\n");
+        memset(oldpass, 0, sizeof(oldpass));
+        memset(newpass, 0, sizeof(newpass));
+        memset(confirm, 0, sizeof(confirm));
+        return;
+    }
+    
+    sha256_simple(newpass, auth.users[auth.current_user].password_hash);
+    terminal_writestring("Password changed successfully\n");
+    
+    memset(oldpass, 0, sizeof(oldpass));
+    memset(newpass, 0, sizeof(newpass));
+    memset(confirm, 0, sizeof(confirm));
+}
+
+void cmd_adduser(const char* username, const char* password) {
+    if (!is_current_user_admin()) {
+        terminal_writestring("Permission denied\n");
+        return;
+    }
+    
+    if (auth.user_count >= MAX_USERS) {
+        terminal_writestring("Maximum users reached\n");
+        return;
+    }
+    
+    if (find_user(username) != -1) {
+        terminal_writestring("User already exists\n");
+        return;
+    }
+    
+    User* new_user = &auth.users[auth.user_count];
+    strncpy(new_user->username, username, MAX_NAME - 1);
+    sha256_simple(password, new_user->password_hash);
+    new_user->is_admin = false;
+    new_user->active = true;
+    auth.user_count++;
+    
+    terminal_writestring("User created successfully\n");
+}
+
+void cmd_deluser(const char* username) {
+    if (!is_current_user_admin()) {
+        terminal_writestring("Permission denied\n");
+        return;
+    }
+    
+    if (strcmp(username, get_current_username()) == 0) {
+        terminal_writestring("Cannot delete current user\n");
+        return;
+    }
+    
+    int user_idx = find_user(username);
+    if (user_idx == -1) {
+        terminal_writestring("User not found\n");
+        return;
+    }
+    
+    auth.users[user_idx].active = false;
+    terminal_writestring("User deleted successfully\n");
+}
 
 // Helper to convert number to string
 void itoa_helper(int n, char* buf) {
@@ -2608,9 +2745,7 @@ void cmd_ifconfig(void) {
     
     char buf[16];
     
-    terminal_writestring("eth0: ");
-    terminal_writestring(net_driver_get_name());
-    terminal_writestring("\n");
+    terminal_writestring("eth0: RTL8139 Fast Ethernet\n");
     
     // DHCP status
     if (net_device.dhcp_configured) {
@@ -2897,10 +3032,6 @@ void cmd_ping(const char* ip_str, int count) {
         // Wait for ARP reply (3 second timeout)
         int arp_attempts = 0;
         while (!next_hop_mac && arp_attempts < 30) {
-            if (interrupt_command) {
-                terminal_writestring("Interrupted\n");
-                return;
-            }
             net_poll();
             next_hop_mac = arp_lookup(arp_target);
             if (next_hop_mac) break;
@@ -2940,12 +3071,6 @@ void cmd_ping(const char* ip_str, int count) {
     
     // Send pings
     for (int i = 0; i < ping_state.ping_count; i++) {
-        if (interrupt_command) {
-            terminal_writestring("\nInterrupted\n");
-            ping_state.active = false;
-            return;
-        }
-        
         ping_state.ping_seq = htons(i + 1);
         ping_state.pings_sent++;
         
@@ -2961,11 +3086,6 @@ void cmd_ping(const char* ip_str, int count) {
         int wait_attempts = 0;
         int initial_received = ping_state.pings_received;
         while (ping_state.pings_received == initial_received && wait_attempts < 100) {
-            if (interrupt_command) {
-                terminal_writestring("\nInterrupted\n");
-                ping_state.active = false;
-                return;
-            }
             net_poll();
             if (ping_state.pings_received > initial_received) break;
             delay_ms(10);  // 10ms delay = 1 second total timeout
@@ -3065,7 +3185,133 @@ void cmd_dhcp(void) {
     }
 }
 
-// GUI Commands - Moved to kernel/commands/gui_commands.c
+void cmd_startgui(void) {
+    clear_screen();
+    terminal_writestring("GUI mode activated\n");
+    terminal_writestring("GUI commands: newwin, closewin, focuswin, listwin, writewin, exitgui\n");
+    terminal_writestring("Press Enter to continue...\n");
+    gui_mode = true;
+}
+
+void cmd_exitgui(void) {
+    gui_mode = false;
+    terminal_writestring("Exited GUI mode\n");
+}
+
+void cmd_newwin(const char* title, int x, int y, int w, int h) {
+    if (window_count >= MAX_WINDOWS) {
+        terminal_writestring("Maximum windows reached\n");
+        return;
+    }
+    
+    Window* win = &windows[window_count++];
+    win->id = next_window_id++;
+    strncpy(win->title, title, MAX_NAME - 1);
+    win->x = x;
+    win->y = y;
+    win->width = w;
+    win->height = h;
+    win->visible = true;
+    win->focused = true;
+    win->buffer[0] = '\0';
+    win->buffer_len = 0;
+    
+    // Unfocus all other windows
+    for (int i = 0; i < window_count - 1; i++) {
+        windows[i].focused = false;
+    }
+    
+    render_all_windows();
+    terminal_writestring("Window ");
+    char id_str[12];
+    itoa_helper(win->id, id_str);
+    terminal_writestring(id_str);
+    terminal_writestring(" created\n");
+}
+
+void cmd_closewin(int id) {
+    for (int i = 0; i < window_count; i++) {
+        if (windows[i].id == id) {
+            // Shift windows down
+            for (int j = i; j < window_count - 1; j++) {
+                windows[j] = windows[j + 1];
+            }
+            window_count--;
+            clear_screen();
+            render_all_windows();
+            terminal_writestring("Window closed\n");
+            return;
+        }
+    }
+    terminal_writestring("Window not found\n");
+}
+
+void cmd_focuswin(int id) {
+    for (int i = 0; i < window_count; i++) {
+        windows[i].focused = (windows[i].id == id);
+        if (windows[i].id == id) {
+            clear_screen();
+            render_all_windows();
+            terminal_writestring("Window ");
+            char id_str[12];
+            itoa_helper(id, id_str);
+            terminal_writestring(id_str);
+            terminal_writestring(" focused\n");
+            return;
+        }
+    }
+    terminal_writestring("Window not found\n");
+}
+
+void cmd_listwin(void) {
+    if (window_count == 0) {
+        terminal_writestring("No windows\n");
+        return;
+    }
+    
+    terminal_writestring("Windows:\n");
+    for (int i = 0; i < window_count; i++) {
+        terminal_writestring("  [");
+        char buf[12];
+        itoa_helper(windows[i].id, buf);
+        terminal_writestring(buf);
+        terminal_writestring("] ");
+        terminal_writestring(windows[i].title);
+        terminal_writestring(" (");
+        itoa_helper(windows[i].width, buf);
+        terminal_writestring(buf);
+        terminal_writestring("x");
+        itoa_helper(windows[i].height, buf);
+        terminal_writestring(buf);
+        terminal_writestring(" at ");
+        itoa_helper(windows[i].x, buf);
+        terminal_writestring(buf);
+        terminal_writestring(",");
+        itoa_helper(windows[i].y, buf);
+        terminal_writestring(buf);
+        terminal_writestring(")");
+        if (windows[i].focused) terminal_writestring(" *focused*");
+        terminal_writestring("\n");
+    }
+}
+
+void cmd_writewin(int id, const char* text) {
+    for (int i = 0; i < window_count; i++) {
+        if (windows[i].id == id) {
+            strncpy(windows[i].buffer, text, sizeof(windows[i].buffer) - 1);
+            windows[i].buffer_len = strlen(windows[i].buffer);
+            clear_screen();
+            render_all_windows();
+            terminal_writestring("Text written to window ");
+            char id_str[12];
+            itoa_helper(id, id_str);
+            terminal_writestring(id_str);
+            terminal_writestring("\n");
+            return;
+        }
+    }
+    terminal_writestring("Window not found\n");
+}
 
 // ====================
 // COMMAND PARSER
@@ -3108,9 +3354,6 @@ char* strtok(char* str, const char* delim) {
 void process_command(char* line) {
     char* cmd = strtok(line, " ");
     if (!cmd) return;
-    
-    // Reset interrupt flag before executing command
-    interrupt_command = false;
     
     if (strcmp(cmd, "help") == 0) {
         cmd_help();
@@ -3379,22 +3622,7 @@ void kernel_main(void) {
         // Poll network for incoming packets
         net_poll();
         
-        // In GUI mode, render windows BEFORE prompt to prevent overwriting
-        if (gui_mode) {
-            render_all_windows();
-        }
-        
-        // Print prompt at fixed position (bottom of screen) in GUI mode
-        if (gui_mode) {
-            // Position cursor at bottom-left for prompt
-            terminal_row = VGA_HEIGHT - 1;
-            terminal_column = 0;
-            // Clear the prompt line
-            for (size_t x = 0; x < VGA_WIDTH; x++) {
-                terminal_putentryat(' ', terminal_color, x, VGA_HEIGHT - 1);
-            }
-        }
-        
+        // Print prompt
         terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
         terminal_writestring(get_current_username());
         terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
