@@ -2463,17 +2463,17 @@ bool login(void) {
     const int max_attempts = 3;
     
     terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
-    terminal_writestring("=== slopOS Login ===\n");
+    terminal_writestring("=== slopOS - slide on in ===\n");
     terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
-    terminal_writestring("Default users:\n");
-    terminal_writestring("  admin / slopOS123 (administrator)\n");
-    terminal_writestring("  user  / password  (regular user)\n\n");
+    terminal_writestring("Default vibers:\n");
+    terminal_writestring("  admin / slopOS123 (the boss)\n");
+    terminal_writestring("  user  / password  (just chillin)\n\n");
     
     while (attempts < max_attempts) {
-        terminal_writestring("Username: ");
+        terminal_writestring("who are you? ");
         read_line(username, sizeof(username));
         
-        terminal_writestring("Password: ");
+        terminal_writestring("prove it: ");
         read_password(password, sizeof(password));
         
         int user_idx = find_user(username);
@@ -2482,12 +2482,12 @@ bool login(void) {
             auth.logged_in = true;
             
             terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
-            terminal_writestring("Login successful! Welcome, ");
+            terminal_writestring("ayy you made it! welcome back, ");
             terminal_writestring(auth.users[user_idx].username);
-            terminal_writestring(".\n");
+            terminal_writestring("!\n");
             
             if (auth.users[user_idx].is_admin) {
-                terminal_writestring("Administrator privileges granted.\n");
+                terminal_writestring("you got the keys to the castle!\n");
             }
             terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
             terminal_writestring("\n");
@@ -2498,14 +2498,14 @@ bool login(void) {
         
         attempts++;
         terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK));
-        terminal_writestring("Invalid username or password.\n");
+        terminal_writestring("nah that ain't it chief.\n");
         terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
         
         memset(password, 0, sizeof(password));
     }
     
     terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK));
-    terminal_writestring("Too many failed attempts. System halted.\n");
+    terminal_writestring("too many bad vibes. system's done with you.\n");
     return false;
 }
 
@@ -3112,29 +3112,29 @@ void process_command(char* line) {
     // Reset interrupt flag before executing command
     interrupt_command = false;
     
-    if (strcmp(cmd, "help") == 0) {
+    if (strcmp(cmd, "whatdo") == 0) {
         cmd_help();
-    } else if (strcmp(cmd, "ls") == 0) {
+    } else if (strcmp(cmd, "peek") == 0) {
         cmd_ls();
-    } else if (strcmp(cmd, "mkdir") == 0) {
+    } else if (strcmp(cmd, "cook") == 0) {
         char* arg = strtok(NULL, " ");
         if (arg) cmd_mkdir(arg);
-        else terminal_writestring("mkdir: missing name\n");
-    } else if (strcmp(cmd, "touch") == 0) {
+        else terminal_writestring("cook: missing name\n");
+    } else if (strcmp(cmd, "yeet") == 0) {
         char* arg = strtok(NULL, " ");
         if (arg) cmd_touch(arg);
-        else terminal_writestring("touch: missing name\n");
-    } else if (strcmp(cmd, "cd") == 0) {
+        else terminal_writestring("yeet: missing name\n");
+    } else if (strcmp(cmd, "bounce") == 0) {
         char* arg = strtok(NULL, " ");
         if (arg) cmd_cd(arg);
-        else terminal_writestring("cd: missing name\n");
-    } else if (strcmp(cmd, "pwd") == 0) {
+        else terminal_writestring("bounce: missing name\n");
+    } else if (strcmp(cmd, "whereami") == 0) {
         cmd_pwd();
-    } else if (strcmp(cmd, "whoami") == 0) {
+    } else if (strcmp(cmd, "me") == 0) {
         cmd_whoami();
-    } else if (strcmp(cmd, "listusers") == 0) {
+    } else if (strcmp(cmd, "whosthere") == 0) {
         cmd_listusers();
-    } else if (strcmp(cmd, "ifconfig") == 0) {
+    } else if (strcmp(cmd, "mynet") == 0) {
         cmd_ifconfig();
     } else if (strcmp(cmd, "arp") == 0) {
         cmd_arp();
@@ -3142,11 +3142,11 @@ void process_command(char* line) {
         cmd_netstat();
     } else if (strcmp(cmd, "route") == 0) {
         cmd_route();
-    } else if (strcmp(cmd, "ping") == 0) {
+    } else if (strcmp(cmd, "poke") == 0) {
         char* ip_arg = strtok(NULL, " ");
         if (!ip_arg) {
-            terminal_writestring("Usage: ping <ip> [count]\n");
-            terminal_writestring("  count: number of pings to send (default: 5)\n");
+            terminal_writestring("Usage: poke <ip> [count]\n");
+            terminal_writestring("  count: number of pokes to send (default: 5)\n");
         } else {
             char* count_arg = strtok(NULL, " ");
             int count = 5; // default
@@ -3157,35 +3157,35 @@ void process_command(char* line) {
                     count = count * 10 + (count_arg[i] - '0');
                 }
                 if (count < 1) count = 5;
-                if (count > 20) count = 20; // Max 20 pings
+                if (count > 20) count = 20; // Max 20 pokes
             }
             cmd_ping(ip_arg, count);
         }
-    } else if (strcmp(cmd, "dhcp") == 0) {
+    } else if (strcmp(cmd, "gimmeip") == 0) {
         cmd_dhcp();
-    } else if (strcmp(cmd, "nslookup") == 0) {
+    } else if (strcmp(cmd, "wherez") == 0) {
         char* hostname = strtok(NULL, " ");
         if (!hostname) {
-            terminal_writestring("Usage: nslookup <hostname>\n");
+            terminal_writestring("Usage: wherez <hostname>\n");
         } else {
             cmd_nslookup(hostname);
         }
     } else if (strcmp(cmd, "passwd") == 0) {
         cmd_passwd();
-    } else if (strcmp(cmd, "adduser") == 0) {
+    } else if (strcmp(cmd, "recruit") == 0) {
         char* user = strtok(NULL, " ");
         char* pass = strtok(NULL, " ");
         if (user && pass) cmd_adduser(user, pass);
-        else terminal_writestring("adduser: usage: adduser <username> <password>\n");
-    } else if (strcmp(cmd, "deluser") == 0) {
+        else terminal_writestring("recruit: usage: recruit <username> <password>\n");
+    } else if (strcmp(cmd, "kickout") == 0) {
         char* user = strtok(NULL, " ");
         if (user) cmd_deluser(user);
-        else terminal_writestring("deluser: missing username\n");
-    } else if (strcmp(cmd, "startgui") == 0) {
+        else terminal_writestring("kickout: missing username\n");
+    } else if (strcmp(cmd, "govisual") == 0) {
         cmd_startgui();
-    } else if (strcmp(cmd, "exitgui") == 0) {
+    } else if (strcmp(cmd, "goblind") == 0) {
         cmd_exitgui();
-    } else if (strcmp(cmd, "newwin") == 0) {
+    } else if (strcmp(cmd, "spawn") == 0) {
         char* title = strtok(NULL, " ");
         char* xs = strtok(NULL, " ");
         char* ys = strtok(NULL, " ");
@@ -3200,9 +3200,9 @@ void process_command(char* line) {
             for (int i = 0; hs[i] >= '0' && hs[i] <= '9'; i++) h = h * 10 + (hs[i] - '0');
             cmd_newwin(title, x, y, w, h);
         } else {
-            terminal_writestring("newwin: usage: newwin <title> <x> <y> <w> <h>\n");
+            terminal_writestring("spawn: usage: spawn <title> <x> <y> <w> <h>\n");
         }
-    } else if (strcmp(cmd, "closewin") == 0) {
+    } else if (strcmp(cmd, "kill") == 0) {
         char* id_str = strtok(NULL, " ");
         if (id_str) {
             int id = 0;
@@ -3211,9 +3211,9 @@ void process_command(char* line) {
             }
             cmd_closewin(id);
         } else {
-            terminal_writestring("closewin: missing window id\n");
+            terminal_writestring("kill: missing window id\n");
         }
-    } else if (strcmp(cmd, "focuswin") == 0) {
+    } else if (strcmp(cmd, "focus") == 0) {
         char* id_str = strtok(NULL, " ");
         if (id_str) {
             int id = 0;
@@ -3222,11 +3222,11 @@ void process_command(char* line) {
             }
             cmd_focuswin(id);
         } else {
-            terminal_writestring("focuswin: missing window id\n");
+            terminal_writestring("focus: missing window id\n");
         }
-    } else if (strcmp(cmd, "listwin") == 0) {
+    } else if (strcmp(cmd, "windows") == 0) {
         cmd_listwin();
-    } else if (strcmp(cmd, "writewin") == 0) {
+    } else if (strcmp(cmd, "scribble") == 0) {
         char* id_str = strtok(NULL, " ");
         char* text = strtok(NULL, "");  // Get rest of line
         if (id_str && text) {
@@ -3238,12 +3238,12 @@ void process_command(char* line) {
         } else {
             terminal_writestring("writewin: usage: writewin <id> <text>\n");
         }
-    } else if (strcmp(cmd, "clear") == 0) {
+    } else if (strcmp(cmd, "wipe") == 0) {
         clear_screen();
     } else {
         terminal_writestring("Unknown command: ");
         terminal_writestring(cmd);
-        terminal_writestring("\n");
+        terminal_writestring("\nType 'whatdo' for help\n");
     }
 }
 
@@ -3369,9 +3369,9 @@ void kernel_main(void) {
     
     // Welcome message
     terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
-    terminal_writestring("slopOS ready. Type 'help' for available commands.\n");
+    terminal_writestring("slopOS ready. Keep it sloppy!\n");
     terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
-    terminal_writestring("\n");
+    terminal_writestring("Type 'whatdo' for commands.\n\n");
     
     // Command loop
     char line[256];
@@ -3395,14 +3395,20 @@ void kernel_main(void) {
             }
         }
         
+        // Sloppy prompt style: [user vibing in /path]>
+        terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
+        terminal_writestring("[");
         terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
         terminal_writestring(get_current_username());
-        terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
-        terminal_writestring("@slopOS:");
+        terminal_setcolor(vga_entry_color(VGA_COLOR_PINK, VGA_COLOR_BLACK));
+        terminal_writestring(" vibing in ");
         terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK));
         terminal_writestring(entries[cwd].name);
         terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
-        terminal_writestring("$ ");
+        terminal_writestring("]");
+        terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
+        terminal_writestring("> ");
+        terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
         
         // Read command
         read_line(line, sizeof(line));

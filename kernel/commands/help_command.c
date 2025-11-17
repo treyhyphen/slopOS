@@ -1,36 +1,36 @@
 #include "../kernel_api.h"
 
 void cmd_help(void) {
-    terminal_writestring("Available commands:\n");
-    terminal_writestring("  ls             - list directory contents\n");
-    terminal_writestring("  mkdir <name>   - create directory\n");
-    terminal_writestring("  touch <name>   - create file\n");
-    terminal_writestring("  cd <name|..>   - change directory\n");
-    terminal_writestring("  pwd            - print working directory\n");
-    terminal_writestring("  whoami         - show current user\n");
+    terminal_writestring("slopOS commands (keep it sloppy):\n");
+    terminal_writestring("  peek             - list what's cookin\n");
+    terminal_writestring("  cook <name>      - make a folder\n");
+    terminal_writestring("  yeet <name>      - slap down a file\n");
+    terminal_writestring("  bounce <name|..> - jump to folder\n");
+    terminal_writestring("  whereami         - where am i at?\n");
+    terminal_writestring("  me               - who am i?\n");
     if (is_current_user_admin()) {
-        terminal_writestring("  listusers      - list all users (admin)\n");
-        terminal_writestring("  adduser        - add new user (admin)\n");
-        terminal_writestring("  deluser        - delete user (admin)\n");
+        terminal_writestring("  whosthere        - see all users (admin)\n");
+        terminal_writestring("  recruit          - add new user (admin)\n");
+        terminal_writestring("  kickout          - boot a user (admin)\n");
     }
-    terminal_writestring("  passwd         - change password\n");
-    terminal_writestring("  ifconfig       - show network configuration\n");
-    terminal_writestring("  dhcp           - request IP via DHCP\n");
-    terminal_writestring("  arp            - show ARP cache\n");
-    terminal_writestring("  netstat        - show network statistics\n");
-    terminal_writestring("  route          - show routing table\n");
-    terminal_writestring("  ping <ip|host> [count] - send ICMP echo (default: 5 pings)\n");
-    terminal_writestring("  nslookup <host> - resolve domain name via DNS\n");
+    terminal_writestring("  passwd           - change your secret\n");
+    terminal_writestring("  mynet            - check your net setup\n");
+    terminal_writestring("  gimmeip          - auto-grab an IP (DHCP)\n");
+    terminal_writestring("  arp              - who's on the LAN\n");
+    terminal_writestring("  netstat          - network stats\n");
+    terminal_writestring("  route            - routing vibes\n");
+    terminal_writestring("  poke <ip|host> [count] - poke a host (default: 5)\n");
+    terminal_writestring("  wherez <host>    - find where a site lives\n");
     if (!gui_mode) {
-        terminal_writestring("  startgui       - start GUI mode\n");
+        terminal_writestring("  govisual         - enter visual mode\n");
     } else {
-        terminal_writestring("  newwin         - create new window\n");
-        terminal_writestring("  closewin       - close window\n");
-        terminal_writestring("  focuswin       - focus window\n");
-        terminal_writestring("  listwin        - list windows\n");
-        terminal_writestring("  writewin       - write to window\n");
-        terminal_writestring("  exitgui        - exit GUI mode\n");
+        terminal_writestring("  spawn            - spawn a window\n");
+        terminal_writestring("  kill             - yeet a window\n");
+        terminal_writestring("  focus            - focus a window\n");
+        terminal_writestring("  windows          - list windows\n");
+        terminal_writestring("  scribble         - write to window\n");
+        terminal_writestring("  goblind          - exit visual mode\n");
     }
-    terminal_writestring("  clear          - clear screen\n");
-    terminal_writestring("  help           - show this help\n");
+    terminal_writestring("  wipe             - clear screen\n");
+    terminal_writestring("  whatdo           - show this list\n");
 }

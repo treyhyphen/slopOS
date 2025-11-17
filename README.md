@@ -68,20 +68,21 @@ sudo dd if=slopos.iso of=/dev/sdX bs=4M
 - **Regular User**: username `user`, password `password` (maximum creativity)
 
 ### Networking Note
-slopOS now includes **DHCP client support**! It will automatically attempt to obtain an IP address at boot. If DHCP fails, you can manually run the `dhcp` command to retry.
+slopOS now includes **DHCP client support**! It will automatically attempt to grab an IP address at boot. If DHCP fails, just run `gimmeip` to retry.
 
 ### Your First Commands
 
 ```bash
-help              # "HELP! What have I done?!"
-ls                # Look at all this nothing!
-mkdir memes       # Create a directory (it'll be gone in 5 minutes)
-cd memes          # Enter the void
-touch dank.txt    # Create a "file" (it's just metadata, calm down)
-pwd               # "Where am I? Who am I?"
-whoami            # Existential crisis simulator
-ifconfig          # Check your network configuration
-ping 10.0.2.2     # Ping the QEMU gateway (if networking is enabled)
+whatdo            # "yo what can i even do here?"
+peek              # check out what's vibin in this folder
+cook memes        # spawn a new folder (it'll vanish when you reboot tho)
+bounce memes      # slide into that folder
+yeet dank.txt     # slap down a new "file" (just vibes, no actual data)
+whereami          # "wait where am i?"
+me                # "who am i even?"
+mynet             # peep your network setup
+poke 10.0.2.2     # poke the QEMU gateway (if networking is up)
+wherez google.com # find where a website lives (DNS lookup)
 ```
 
 ## 📦 Features That Will Make You Question Everything
@@ -117,17 +118,17 @@ Lovingly hand-crafted to interpret your keystrokes:
 Yes, we have windows. Made of ASCII art. Because we can.
 
 ```bash
-startgui                      # Enter the ✨ aesthetic ✨
-newwin MyWindow 5 3 30 10     # Create a fancy box
-writewin 1 "Hello!"           # Write text in the box
-focuswin 1                    # Make it blue (very important)
-listwin                       # Admire your creations
-closewin 1                    # Destroy everything
-exitgui                       # Escape back to reality
+govisual                      # Enter the ✨ visual mode ✨
+spawn MyWindow 5 3 30 10      # Create a fancy box
+scribble 1 "Hello!"           # Write text in the box
+focus 1                       # Make it blue (very important)
+windows                       # Admire your creations
+kill 1                        # Destroy everything
+goblind                       # Escape back to text mode
 ```
 
 Windows feature:
-- Borders made of `+`, `-`, and `|` (cutting edge graphics)
+- Borders made of `=` and `|` (cutting edge graphics)
 - Focus indication (blue = focused, because psychology)
 - Overlapping windows (they just draw over each other, deal with it)
 - Window titles (so you can name your void)
@@ -137,9 +138,9 @@ A sophisticated multi-user system for your single-user OS:
 
 ```bash
 passwd                        # Change your password (why though?)
-adduser bob secretpass123     # Create new user (admin only)
-deluser bob                   # Destroy Bob (admin only)
-listusers                     # See all the users (admin only)
+recruit bob secretpass123     # Create new user (admin only)
+kickout bob                   # Destroy Bob (admin only)
+whosthere                     # See all the vibers (admin only)
 ```
 
 *Note: Can't delete yourself. We're not THAT chaotic.*
@@ -148,20 +149,24 @@ listusers                     # See all the users (admin only)
 A real networking implementation for your volatile RAM OS:
 
 ```bash
-ifconfig                      # Show network configuration
+mynet                        # Show network configuration
 arp                          # Display ARP cache
 netstat                      # Show network statistics
-ping 10.0.2.2                # Send ICMP echo to gateway
+route                        # Show routing table
+poke 10.0.2.2                # Send ICMP echo to gateway
+gimmeip                      # Request IP via DHCP
+wherez google.com            # DNS lookup - find where a site lives
 ```
 
 Features:
-- **RTL8139 driver** (automatically detected via PCI enumeration)
+- **RTL8139 + e1000 drivers** (automatically detected via PCI enumeration)
 - **Ethernet frame handling** (because we're fancy)
 - **ARP protocol** (resolves IP to MAC addresses)
 - **IP stack** (basic IPv4 support)
-- **UDP protocol** (for DHCP and future protocols)
+- **UDP protocol** (for DHCP and DNS)
 - **ICMP** (responds to ping requests automatically!)
 - **DHCP client** (automatically obtains IP address at boot!)
+- **DNS resolver** (look up domain names!)
 - **Network statistics** (RX/TX packet counts and errors)
 - Automatic configuration via DHCP (10.0.2.15/24 default in QEMU)
 
@@ -172,36 +177,39 @@ qemu-system-i386 -cdrom slopos.iso -m 32M -netdev user,id=net0 -device rtl8139,n
 
 Now you can ping slopOS from your host! Try: `ping 10.0.2.15`
 
-## 🎮 All Available Commands
+## 🎮 All Available Commands (Keep It Sloppy)
 
 | Command | What It Do | Example | Chaos Level |
 |---------|-----------|---------|-------------|
-| `help` | Shows this list of questionable choices | `help` | ⭐ |
-| `ls` | Lists your temporary filesystem entries | `ls` | ⭐ |
-| `mkdir` | Makes a directory that'll vanish on reboot | `mkdir temp` | ⭐⭐ |
-| `touch` | Creates a file with no content | `touch file.txt` | ⭐⭐ |
-| `cd` | Changes directory (supports `..` like a boss) | `cd dir` | ⭐⭐ |
-| `pwd` | Shows where you are in the void | `pwd` | ⭐ |
-| `whoami` | Existential crisis command | `whoami` | ⭐⭐⭐⭐ |
-| `listusers` | Lists all users (admin flex) | `listusers` | ⭐⭐ |
+| `whatdo` | Shows this list of sloppy vibes | `whatdo` | ⭐ |
+| `peek` | Peep what's in this folder | `peek` | ⭐ |
+| `cook` | Make a folder that'll vanish on reboot | `cook temp` | ⭐⭐ |
+| `yeet` | Slap down a file with no content | `yeet file.txt` | ⭐⭐ |
+| `bounce` | Jump to another folder (supports `..`) | `bounce dir` | ⭐⭐ |
+| `whereami` | Where you at in the filesystem? | `whereami` | ⭐ |
+| `me` | Who even are you? | `me` | ⭐⭐⭐⭐ |
+| `whosthere` | See all the vibers (admin flex) | `whosthere` | ⭐⭐ |
 | `passwd` | Change password to something you'll forget | `passwd` | ⭐⭐⭐ |
-| `adduser` | Create new user who'll be deleted on reboot | `adduser bob pass` | ⭐⭐⭐⭐ |
-| `deluser` | Destroy a user (admin only) | `deluser bob` | ⭐⭐⭐⭐⭐ |
-| `startgui` | Enter the ASCII Matrix | `startgui` | ⭐⭐⭐⭐⭐ |
-| `newwin` | Create ASCII window | `newwin Title 5 3 30 10` | ⭐⭐⭐⭐ |
-| `closewin` | Destroy window | `closewin 1` | ⭐⭐⭐ |
-| `focuswin` | Make window blue | `focuswin 1` | ⭐⭐ |
-| `listwin` | Admire your ASCII art | `listwin` | ⭐⭐ |
-| `writewin` | Put text in window | `writewin 1 "hi"` | ⭐⭐⭐ |
-| `exitgui` | Escape the Matrix | `exitgui` | ⭐⭐⭐⭐⭐ |
-| `ifconfig` | Show network config | `ifconfig` | ⭐⭐ |
-| `dhcp` | Request IP via DHCP | `dhcp` | ⭐⭐⭐ |
-| `arp` | Display ARP cache | `arp` | ⭐⭐ |
-| `netstat` | Show network stats | `netstat` | ⭐⭐ |
-| `ping` | Send ICMP echo | `ping 10.0.2.2` | ⭐⭐⭐ |
-| `clear` | Make the bad thoughts go away | `clear` | ⭐⭐⭐⭐⭐ |
+| `recruit` | Invite a new user who'll be gone on reboot | `recruit bob pass` | ⭐⭐⭐⭐ |
+| `kickout` | Boot a user (admin only) | `kickout bob` | ⭐⭐⭐⭐⭐ |
+| `govisual` | Enter visual mode | `govisual` | ⭐⭐⭐⭐⭐ |
+| `spawn` | Create ASCII window | `spawn Title 5 3 30 10` | ⭐⭐⭐⭐ |
+| `kill` | Destroy window | `kill 1` | ⭐⭐⭐ |
+| `focus` | Make window blue (important vibes) | `focus 1` | ⭐⭐ |
+| `windows` | Admire your ASCII art | `windows` | ⭐⭐ |
+| `scribble` | Put text in window | `scribble 1 "hi"` | ⭐⭐⭐ |
+| `goblind` | Exit visual mode | `goblind` | ⭐⭐⭐⭐⭐ |
+| `mynet` | Check your net setup | `mynet` | ⭐⭐ |
+| `gimmeip` | Auto-grab an IP (DHCP) | `gimmeip` | ⭐⭐⭐ |
+| `arp` | See who's on the LAN | `arp` | ⭐⭐ |
+| `netstat` | Network stats and vibes | `netstat` | ⭐⭐ |
+| `route` | Check the routing table | `route` | ⭐⭐ |
+| `poke` | Poke a host with ICMP | `poke 10.0.2.2` | ⭐⭐⭐ |
+| `wherez` | Find where a site lives (DNS) | `wherez google.com` | ⭐⭐⭐ |
+| `wipe` | Clear the screen (fresh start) | `wipe` | ⭐⭐⭐⭐⭐ |
 
 **Arrow Keys**: ⬆️ = previous command, ⬇️ = next command (stores up to 50, because we're not animals)
+**CTRL+C**: Interrupt long-running commands (like `poke`, `gimmeip`, `wherez`)
 
 ## 🏗️ Technical Details (For the Nerds)
 
@@ -212,10 +220,12 @@ Now you can ping slopOS from your host! Try: `ping 10.0.2.15`
 - **Keyboard**: PS/2 I/O ports (scancode translation? we got you)
 - **Filesystem**: In-memory linked list (256 entries max, we're not Google)
 - **Security**: SHA256-simple (we implemented our own, probably broken)
-- **Networking**: RTL8139 driver with Ethernet/IP/ARP/ICMP support
-- **Network Protocols**: ARP, IPv4, UDP, ICMP (ping!), DHCP client
-- **Kernel Size**: ~45KB (still a smol bean)
+- **Networking**: RTL8139 + e1000 drivers with multi-driver support
+- **Network Protocols**: Ethernet, ARP, IPv4, UDP, ICMP, DHCP client, DNS resolver
+- **Driver Architecture**: Modular network driver system (easily extensible)
+- **Kernel Size**: ~50KB (still a smol bean)
 - **ISO Size**: 5MB (most of it is GRUB)
+- **Command System**: Modular command structure (fs, user, network, gui modules)
 
 ## 📁 What's In The Box?
 
@@ -268,7 +278,6 @@ qemu-system-i386 -cdrom slopos.iso -m 32M
 - 💾 **Persistence**: None. Zero. Nada. Reboot and it's all gone.
 - 📊 **File Content**: Files don't actually store data. It's just names. Philosophy!
 - 🔢 **Filesystem Size**: 256 entries max. After that? ¯\\\_(ツ)_/¯
-- 🌐 **Networking**: What's networking?
 - 🖱️ **Mouse**: Use your imagination
 - ⌨️ **Keyboard**: US QWERTY only (sorry international friends)
 - 🎵 **Sound**: Silence is golden
@@ -276,9 +285,10 @@ qemu-system-i386 -cdrom slopos.iso -m 32M
 - 🔒 **Security**: We hash passwords for a filesystem that doesn't exist
 - 🪟 **GUI**: "Graphics" made of ASCII characters
 - 🔄 **Multitasking**: One thing at a time, like my brain
-- 🌐 **Networking**: Only works in QEMU with RTL8139 emulation
-- 📡 **Protocols**: TCP? Never heard of it. UDP and ICMP only!
+- 🌐 **Networking**: Works with RTL8139 or e1000 in QEMU/VirtualBox
+- 📡 **TCP**: What's that? UDP only gang!
 - 🔧 **DHCP**: Works great in QEMU user networking mode
+- 🌐 **DNS**: Can resolve names but can't browse the web (yet)
 
 ## 🎓 What You'll Learn
 
@@ -288,14 +298,17 @@ qemu-system-i386 -cdrom slopos.iso -m 32M
 - Why operating systems are hard
 - Why you should appreciate Linux
 - How to draw windows with ASCII characters
-- That implementing `cd ..` is harder than it looks
+- That implementing `bounce ..` is harder than it looks
 - Arrow key command history (actually useful)
+- CTRL+C interrupt handling (stop those infinite loops!)
 - PCI device enumeration (finding hardware the hard way)
 - Network packet parsing (Ethernet frames are fun!)
-- Writing a network driver (RTL8139 isn't too bad actually)
+- Writing network drivers (RTL8139 and e1000)
 - Why ARP exists (IP addresses need MAC addresses)
 - DHCP protocol (DISCOVER, OFFER, REQUEST, ACK dance)
+- DNS resolution (turning names into IPs)
 - UDP implementation (simpler than TCP, still useful)
+- Modular driver architecture (making code less sloppy)
 
 ## 🤝 Contributing
 
@@ -309,11 +322,13 @@ Things that would make slopOS marginally less useless:
 - [ ] A better GUI (ASCII art is sacred though)
 - [ ] Actual file operations (read/write/edit)
 - [ ] Tab completion (fancy!)
-- [ ] TCP/UDP support (ambitious!)
-- [ ] DHCP client (no more hardcoded IPs)
-- [x] ~~DHCP client~~ (WE DID IT!)
-- [ ] DNS resolver (remember IP addresses? me neither)
-- [ ] More jokes in this README
+- [x] ~~Multi-driver support~~ (WE DID IT!)
+- [x] ~~DHCP client~~ (DONE!)
+- [x] ~~DNS resolver~~ (DONE!)
+- [x] ~~CTRL+C interrupts~~ (DONE!)
+- [ ] TCP support (ambitious!)
+- [ ] HTTP client (web browsing in ASCII?)
+- [ ] More sloppy command names (never enough slop)
 
 ## 📜 License
 
