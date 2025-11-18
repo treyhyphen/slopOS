@@ -54,7 +54,7 @@ This directory contains automated CI/CD workflows for slopOS.
 **What it does:**
 - Automatically increments the patch version
 - Creates and pushes a new version tag
-- Example: `v0.1.0` → `v0.1.1` → `v0.1.2`
+- Example: `v0.2.0` → `v0.2.0` → `v0.2.0`
 
 **Tag Format:** `vMAJOR.MINOR.PATCH` (e.g., `v1.2.3`)
 

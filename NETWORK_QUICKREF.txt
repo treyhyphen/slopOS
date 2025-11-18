@@ -1,0 +1,150 @@
+========================================
+  slopOS NETWORKING QUICK REFERENCE
+========================================
+
+COMMANDS
+--------
+ifconfig        Show network configuration
+dhcp            Request IP via DHCP
+arp             Display ARP cache
+netstat         Show network statistics
+ping <ip>       Send ARP request to IP
+
+EXAMPLE SESSION
+---------------
+admin@slopOS:/$ ifconfig
+eth0: RTL8139 Fast Ethernet
+  [DHCP configured]
+  HWaddr: 52:54:00:12:34:56
+  inet addr: 10.0.2.15
+  Gateway: 10.0.2.2
+  Netmask: 255.255.255.0
+  DNS: 10.0.2.3
+
+admin@slopOS:/$ dhcp
+Starting DHCP client...
+  DHCP: Sending DISCOVER...
+DHCP configuration successful!
+IP address: 10.0.2.15
+
+admin@slopOS:/$ netstat
+Network statistics:
+  RX packets: 0
+  RX errors:  0
+  TX packets: 0
+  TX errors:  0
+
+admin@slopOS:/$ ping 10.0.2.2
+PING 10.0.2.2 - Sending ARP request...
+Note: slopOS networking is basic. Check netstat for statistics.
+The target will receive packets if it's on the network.
+
+admin@slopOS:/$ arp
+ARP cache:
+IP Address       HW Address
+10.0.2.2         52:55:0A:00:02:02
+
+RUNNING IN QEMU
+---------------
+# With networking support
+qemu-system-i386 -cdrom slopos.iso -m 32M \
+    -netdev user,id=net0 \
+    -device rtl8139,netdev=net0
+
+# Or use the test script
+./test-network.sh
+
+NETWORK DETAILS
+---------------
+Protocol Support:
+  ✓ Ethernet (Layer 2)
+  ✓ ARP (Address Resolution)
+  ✓ IPv4 (Layer 3)
+  ✓ UDP (Layer 4 - for DHCP)
+  ✓ ICMP (Ping)
+  ✓ DHCP (Auto-configuration!)
+  ✗ TCP (not implemented)
+
+Hardware:
+  • RTL8139 Fast Ethernet
+  • Auto-detected via PCI
+  • 10/100 Mbps
+
+Default Config:
+  IP:      Obtained via DHCP (typically 10.0.2.15)
+  Netmask: Obtained via DHCP (typically 255.255.255.0)
+  Gateway: Obtained via DHCP (typically 10.0.2.2)
+  DNS:     Obtained via DHCP (typically 10.0.2.3)
+
+FEATURES
+--------
+• Automatic DHCP at boot
+• Automatic ARP response
+• Automatic ICMP echo reply
+• ARP cache with 32 entries
+• Network statistics tracking
+• PCI device enumeration
+• Manual DHCP retry command
+
+HOW IT WORKS
+------------
+1. Kernel scans PCI bus for RTL8139
+2. Initializes network card
+3. Sends DHCP DISCOVER broadcast
+4. Receives DHCP OFFER from server
+5. Sends DHCP REQUEST for offered IP
+6. Receives DHCP ACK with configuration
+7. Applies IP, netmask, gateway, DNS
+8. Main loop polls for packets
+9. Responds to ARP/ICMP automatically
+10. Commands query network state
+
+TESTING
+-------
+After booting slopOS:
+1. Watch boot messages for DHCP status
+2. Run 'ifconfig' to verify DHCP configured
+3. Check [DHCP configured] status line
+4. Run 'ping 10.0.2.2' to send ARP
+5. Run 'arp' to see learned MAC address
+6. Run 'netstat' to see packet counts
+7. If DHCP failed, run 'dhcp' to retry
+
+From host (won't work in user networking):
+  ping 10.0.2.15
+
+TROUBLESHOOTING
+---------------
+"Network device not initialized"
+→ Add networking to QEMU command:
+  -netdev user,id=net0 -device rtl8139,netdev=net0
+
+"DHCP failed" at boot
+→ Normal if no DHCP server available
+→ QEMU user networking provides DHCP by default
+→ Try manual 'dhcp' command to retry
+→ Check that you have -netdev option
+
+"[No IP address]" in ifconfig
+→ DHCP didn't succeed
+→ Run 'dhcp' command manually
+→ Check netstat for RX packets (should increase)
+
+"ARP cache empty after ping"
+→ Normal in user networking mode
+→ Gateway might not respond to ARP
+
+No RX packets in netstat
+→ Expected without external traffic
+→ Host can't directly reach guest in user mode
+
+DOCUMENTATION
+-------------
+README.md              - Updated features
+NETWORKING.md          - Complete guide
+NETWORKING_SUMMARY.md  - Implementation details
+kernel/kernel.c        - Source code
+
+========================================
+   slopOS: Now with DHCP! Auto-IP!
+========================================

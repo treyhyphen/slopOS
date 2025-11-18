@@ -5,7 +5,8 @@ on:
     branches:
       - '**'  # Build ISO on any branch push
     paths:
-      - 'src/**'
+      - 'kernel/**'
+      - 'drivers/**'
       - 'boot/**'
       - 'Makefile*'
       - '.github/workflows/**'
@@ -14,7 +15,8 @@ on:
       - main
       - master
     paths:
-      - 'src/**'
+      - 'kernel/**'
+      - 'drivers/**'
       - 'boot/**'
       - 'Makefile*'
   workflow_dispatch:
@@ -49,7 +51,7 @@ jobs:
     - name: Check for kernel files
       id: check_kernel
       run: |
-        if [ -d "boot" ] && [ -f "Makefile.simple" ] && [ -f "src/slopos.c" ] && [ -f "boot/boot.s" ]; then
+        if [ -d "boot" ] && [ -d "kernel" ] && [ -f "Makefile" ] && [ -f "kernel/kernel.c" ] && [ -f "boot/boot.s" ]; then
           echo "kernel_exists=true" >> $GITHUB_OUTPUT
           echo "✅ Kernel source found - will build ISO"
         else
@@ -60,20 +62,12 @@ jobs:
     - name: Build kernel
       if: steps.check_kernel.outputs.kernel_exists == 'true'
       run: |
-        if [ -f "Makefile.simple" ]; then
-          make -f Makefile.simple
-        elif [ -f "Makefile" ]; then
-          make
-        fi
+        make all
     
     - name: Build ISO
       if: steps.check_kernel.outputs.kernel_exists == 'true'
       run: |
-        if [ -f "Makefile.simple" ]; then
-          make -f Makefile.simple iso || make iso
-        elif [ -f "Makefile" ]; then
-          make iso
-        fi
+        make iso
     
     - name: Verify ISO
       if: steps.check_kernel.outputs.kernel_exists == 'true'

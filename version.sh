@@ -22,12 +22,12 @@ Commands:
     help                Show this help message
 
 Examples:
-    $0 current                  # Show: v0.1.0
+    $0 current                  # Show: v0.2.0
     $0 set 1.0.0               # Create tag: v1.0.0
     $0 set v2.3.4              # Create tag: v2.3.4
-    $0 bump major              # v0.1.0 → v1.0.0
-    $0 bump minor              # v0.1.0 → v0.2.0
-    $0 bump patch              # v0.1.0 → v0.1.1
+    $0 bump major              # v0.2.0 → v1.0.0
+    $0 bump minor              # v0.2.0 → v0.2.0
+    $0 bump patch              # v0.2.0 → v0.2.0
 
 Note: This will create and push tags to the remote repository.
       Tags will trigger GitHub Actions to build and release.
@@ -37,7 +37,9 @@ EOF
 
 get_latest_tag() {
     git fetch --tags 2>/dev/null || true
-    LATEST=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.1.0")
+    get_current_version() {
+    # Try git tags first, fallback to v0.2.0
+    LATEST=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.2.0")
     echo "$LATEST"
 }
 

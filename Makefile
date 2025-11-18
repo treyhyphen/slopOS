@@ -1,16 +1,104 @@
-# slopOS Makefile - Simulator Build
+# slopOS Makefile
+# Supports both cross-compiler (i686-elf-gcc) and system GCC
 
-CC = gcc
-CFLAGS = -Wall -Wextra -O2
-TARGET = slopOS
+# Try to use cross-compiler, fall back to system GCC
+CROSS_CC := $(shell which i686-elf-gcc 2>/dev/null)
+CROSS_LD := $(shell which i686-elf-ld 2>/dev/null)
 
-all: $(TARGET)
+ifdef CROSS_CC
+    CC = i686-elf-gcc
+    LD = i686-elf-ld
+    CFLAGS = -ffreestanding -nostdlib -nostdinc -fno-builtin -fno-stack-protector -Wall -Wextra -c
+    LDFLAGS = -T kernel/linker.ld -nostdlib
+else
+    CC = gcc
+    LD = ld
+    CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -Wall -Wextra -c
+    LDFLAGS = -m elf_i386 -T kernel/linker.ld
+    LIBGCC := $(shell $(CC) -m32 -print-libgcc-file-name)
+endif
 
-$(TARGET): src/slopos.c
-	$(CC) $(CFLAGS) src/slopos.c -o $(TARGET)
+AS = nasm
+GRUB_MKRESCUE = grub-mkrescue
+
+ASFLAGS = -f elf32
+
+DRIVER_OBJS = drivers/rtl8139.o drivers/e1000.o drivers/net_registry.o
+CMD_OBJS = kernel/commands/help_command.o kernel/commands/fs_commands.o kernel/commands/user_commands.o kernel/commands/gui_commands.o kernel/commands/network_commands.o
+KERNEL_OBJS = boot/boot.o kernel/kernel.o kernel/net_integration.o $(DRIVER_OBJS) $(CMD_OBJS)
+KERNEL_BIN = slopos.bin
+ISO_DIR = isodir
+ISO_FILE = slopos.iso
+
+.PHONY: all clean iso run check-deps
+
+all: check-deps $(KERNEL_BIN)
+
+check-deps:
+	@echo "Build configuration:"
+	@echo "  CC: $(CC)"
+	@echo "  LD: $(LD)"
+	@echo "  AS: $(AS)"
+
+boot/boot.o: boot/boot.s
+	$(AS) $(ASFLAGS) $< -o $@
+
+kernel/kernel.o: kernel/kernel.c
+	$(CC) $(CFLAGS) $< -o $@
+
+kernel/net_integration.o: kernel/net_integration.c
+	$(CC) $(CFLAGS) $< -o $@
+
+drivers/rtl8139.o: drivers/rtl8139.c
+	$(CC) $(CFLAGS) $< -o $@
+
+drivers/e1000.o: drivers/e1000.c
+	$(CC) $(CFLAGS) $< -o $@
+
+drivers/net_registry.o: drivers/net_registry.c
+	$(CC) $(CFLAGS) $< -o $@
+
+kernel/commands/help_command.o: kernel/commands/help_command.c
+	$(CC) $(CFLAGS) $< -o $@
+
+kernel/commands/fs_commands.o: kernel/commands/fs_commands.c
+	$(CC) $(CFLAGS) $< -o $@
+
+kernel/commands/user_commands.o: kernel/commands/user_commands.c
+	$(CC) $(CFLAGS) $< -o $@
+
+kernel/commands/gui_commands.o: kernel/commands/gui_commands.c
+	$(CC) $(CFLAGS) $< -o $@
+
+kernel/commands/network_commands.o: kernel/commands/network_commands.c
+	$(CC) $(CFLAGS) $< -o $@
+
+$(KERNEL_BIN): $(KERNEL_OBJS)
+	$(LD) $(LDFLAGS) -o $@ $(KERNEL_OBJS) $(LIBGCC)
+	@echo "Kernel built: $(KERNEL_BIN)"
+
+iso: $(KERNEL_BIN)
+	@echo "Creating bootable ISO..."
+	mkdir -p $(ISO_DIR)/boot/grub
+	cp $(KERNEL_BIN) $(ISO_DIR)/boot/$(KERNEL_BIN)
+	@if [ ! -f $(ISO_DIR)/boot/grub/grub.cfg ]; then \
+		echo 'set timeout=5' > $(ISO_DIR)/boot/grub/grub.cfg; \
+		echo 'set default=0' >> $(ISO_DIR)/boot/grub/grub.cfg; \
+		echo '' >> $(ISO_DIR)/boot/grub/grub.cfg; \
+		echo 'menuentry "slopOS" {' >> $(ISO_DIR)/boot/grub/grub.cfg; \
+		echo '    multiboot /boot/$(KERNEL_BIN)' >> $(ISO_DIR)/boot/grub/grub.cfg; \
+		echo '}' >> $(ISO_DIR)/boot/grub/grub.cfg; \
+	fi
+	$(GRUB_MKRESCUE) -o $(ISO_FILE) $(ISO_DIR)
+	@echo "ISO created: $(ISO_FILE)"
+
+run: $(KERNEL_BIN)
+	qemu-system-i386 -kernel $(KERNEL_BIN) -m 32M
+
+run-iso: $(ISO_FILE)
+	qemu-system-i386 -cdrom $(ISO_FILE) -m 32M
 
 clean:
-	rm -f $(TARGET)
-
-run: $(TARGET)
-	./$(TARGET)
+	rm -f $(KERNEL_OBJS) $(KERNEL_BIN) $(ISO_FILE) $(DRIVER_OBJS) $(CMD_OBJS)
+	rm -rf $(ISO_DIR)
+	@echo "Cleaned build artifacts"

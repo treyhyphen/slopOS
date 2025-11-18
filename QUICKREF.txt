@@ -1,118 +1,171 @@
 ╔════════════════════════════════════════════════════════════════════╗
-║                    slopOS v0.1.0 Quick Reference                   ║
+║              slopOS v0.2.0 Quick Reference (Keep It Sloppy!)       ║
 ╚════════════════════════════════════════════════════════════════════╝
 
 ┌─ BUILD COMMANDS ──────────────────────────────────────────────────┐
-│ make -f Makefile.simple clean    # Clean build                    │
-│ make -f Makefile.simple all      # Compile kernel                 │
-│ make -f Makefile.simple iso      # Create bootable ISO            │
-│ ./test-full-iso.sh               # Run automated tests            │
+│ make clean                       # Clean build                     │
+│ make all                         # Compile kernel                  │
+│ make iso                         # Create bootable ISO             │
+│ ./test-dhcp.sh                   # Test with networking            │
 └────────────────────────────────────────────────────────────────────┘
 
 ┌─ TESTING ─────────────────────────────────────────────────────────┐
-│ qemu-system-i386 -cdrom slopos.iso -m 32    # Test in QEMU        │
-│ VirtualBox: Mount ISO → Boot (32MB RAM min)                       │
-│ Real Hardware: dd if=slopos.iso of=/dev/sdX bs=4M                 │
-└────────────────────────────────────────────────────────────────────┘
-
-┌─ DEFAULT USERS ───────────────────────────────────────────────────┐
-│ Username: admin      Password: slopOS123    Role: Administrator   │
-│ Username: user       Password: password     Role: Regular User    │
+│ # Basic test (no network)                                          │
+│ qemu-system-i386 -cdrom slopos.iso -m 32M                          │
 │                                                                    │
-│ ⚠️  3 attempts maximum - system halts on failure                  │
+│ # With networking (recommended!)                                   │
+│ qemu-system-i386 -cdrom slopos.iso -m 32M \                        │
+│     -netdev user,id=net0 \                                         │
+│     -device rtl8139,netdev=net0                                    │
+│                                                                    │
+│ VirtualBox: Mount ISO → Enable network adapter → Boot             │
+│ Real Hardware: dd if=slopos.iso of=/dev/sdX bs=4M (be careful!)   │
 └────────────────────────────────────────────────────────────────────┘
 
-┌─ FILESYSTEM COMMANDS ─────────────────────────────────────────────┐
-│ ls                    List directory contents                     │
-│ mkdir <name>          Create new directory                        │
-│ touch <name>          Create new file                             │
-│ cd <name>             Change to directory                         │
-│ cd ..                 Go to parent directory                      │
-│ pwd                   Print working directory                     │
+┌─ DEFAULT VIBERS ──────────────────────────────────────────────────┐
+│ Username: admin      Password: slopOS123    Role: the boss        │
+│ Username: user       Password: password     Role: just chillin    │
+│                                                                    │
+│ ⚠️  3 attempts maximum - too many bad vibes = system done with you │
 └────────────────────────────────────────────────────────────────────┘
 
-┌─ USER COMMANDS ───────────────────────────────────────────────────┐
-│ whoami                Show current username and role              │
-│ listusers             List all users (admin only)                 │
+┌─ FILESYSTEM COMMANDS (Keep It Organized... Or Don't) ─────────────┐
+│ peek                  Peep what's in this folder                  │
+│ cook <name>           Spawn a new folder                          │
+│ yeet <name>           Slap down a new file                        │
+│ bounce <name>         Jump to a folder                            │
+│ bounce ..             Go back to parent                           │
+│ whereami              Where you at in the filesystem?             │
+└────────────────────────────────────────────────────────────────────┘
+
+┌─ USER COMMANDS (Who's Vibing Here?) ──────────────────────────────┐
+│ me                    Who even are you?                           │
+│ whosthere             See all the vibers (admin only)             │
+│ recruit <u> <p>       Invite a new user (admin only)              │
+│ kickout <user>        Boot a user (admin only)                    │
+│ passwd                Change your secret                          │
+└────────────────────────────────────────────────────────────────────┘
+
+┌─ NETWORK COMMANDS (Get Connected!) ───────────────────────────────┐
+│ mynet                 Check your net setup                        │
+│ gimmeip               Auto-grab an IP (DHCP)                      │
+│ poke <ip> [count]     Poke a host (default: 5 pokes)              │
+│ wherez <hostname>     Find where a site lives (DNS)               │
+│ flop <ip> <port>      Connect to remote host (netcat style)       │
+│ flop -l <port>        Listen for incoming connections             │
+│ arp                   See who's on the LAN                        │
+│ netstat               Network stats and vibes                     │
+│ route                 Check the routing table                     │
+│                       (Use CTRL+C to close flop connection)        │
+└────────────────────────────────────────────────────────────────────┘
+
+┌─ GUI COMMANDS (Get Visual!) ──────────────────────────────────────┐
+│ govisual              Enter visual mode                           │
+│ spawn <t> <x> <y> <w> <h> Create ASCII window                     │
+│ scribble <id> <text>  Write text in window                        │
+│ focus <id>            Make window blue (important vibes)          │
+│ windows               See all your windows                        │
+│ kill <id>             Destroy a window                            │
+│ goblind               Exit visual mode                            │
 └────────────────────────────────────────────────────────────────────┘
 
 ┌─ SYSTEM COMMANDS ─────────────────────────────────────────────────┐
-│ help                  Display all available commands              │
-│ clear                 Clear the screen                            │
+│ whatdo                Show all commands                           │
+│ wipe                  Clear the screen (fresh start)              │
 └────────────────────────────────────────────────────────────────────┘
 
 ┌─ KEYBOARD CONTROLS ───────────────────────────────────────────────┐
 │ Enter                 Execute command / Submit input              │
 │ Backspace             Delete previous character                  │
-│ Letters/Numbers       Standard input                              │
+│ Up/Down Arrows        Navigate command history                   │
+│ CTRL+C                Interrupt running command                  │
+│ Shift + Letter        Uppercase (wow, fancy!)                    │
 └────────────────────────────────────────────────────────────────────┘
 
 ┌─ EXAMPLE SESSION ─────────────────────────────────────────────────┐
-│ Username: admin                                                    │
-│ Password: **********                                               │
-│ Login successful! Welcome, admin.                                  │
-│ Administrator privileges granted.                                  │
+│ === slopOS - slide on in ===                                       │
+│ Default vibers:                                                    │
+│   admin / slopOS123 (the boss)                                     │
+│   user  / password  (just chillin)                                │
 │                                                                    │
-│ admin@slopOS:/$ mkdir projects                                     │
+│ who are you? admin                                                 │
+│ prove it: **********                                               │
+│ ayy you made it! welcome back, admin!                              │
+│ you got the keys to the castle!                                    │
+│                                                                    │
+│ [admin vibing in /]> cook projects                                 │
 │ Directory created                                                  │
-│ admin@slopOS:/$ cd projects                                        │
-│ admin@slopOS:/projects$ touch main.c                               │
+│ [admin vibing in /]> bounce projects                               │
+│ [admin vibing in /projects]> yeet main.c                           │
 │ File created                                                       │
-│ admin@slopOS:/projects$ ls                                         │
+│ [admin vibing in /projects]> peek                                  │
 │ - main.c                                                           │
-│ admin@slopOS:/projects$ pwd                                        │
+│ [admin vibing in /projects]> whereami                              │
 │ //projects                                                         │
-│ admin@slopOS:/projects$ cd ..                                      │
-│ admin@slopOS:/$ whoami                                             │
-│ admin (administrator)                                              │
+│ [admin vibing in /projects]> mynet                                 │
+│ Network Configuration:                                             │
+│   Driver: Intel e1000                                              │
+│   MAC:    52:54:00:12:34:56                                        │
+│   IP:     10.0.2.15/24                                             │
+│ [admin vibing in /projects]> poke 10.0.2.2                         │
+│ Pinging 10.0.2.2...                                                │
+│ Reply from 10.0.2.2: time<1ms                                      │
 └────────────────────────────────────────────────────────────────────┘
 
 ┌─ TECHNICAL SPECS ─────────────────────────────────────────────────┐
 │ Architecture:    x86 (32-bit)                                      │
 │ Bootloader:      GRUB (Multiboot)                                 │
-│ Kernel Size:     24 KB                                             │
+│ Kernel Size:     ~50 KB                                            │
 │ ISO Size:        5.0 MB                                            │
 │ RAM Required:    32 MB minimum                                     │
 │ Display:         VGA text mode (80x25)                             │
 │ Keyboard:        PS/2 via I/O ports                                │
 │ Filesystem:      In-memory (256 entries max)                       │
-│ Authentication:  SHA256-simple hashing                             │
+│ Authentication:  SHA256 hashing                                    │
+│ Networking:      RTL8139 + e1000 drivers                           │
+│ Protocols:       Ethernet, ARP, IP, TCP, UDP, ICMP, DHCP, DNS     │
 └────────────────────────────────────────────────────────────────────┘
 
 ┌─ PROJECT FILES ───────────────────────────────────────────────────┐
-│ kernel/kernel.c      Full-featured kernel (~800 lines)            │
-│ boot/boot.s          Multiboot bootloader                         │
-│ src/main.c           OS simulator (945 lines)                     │
-│ Makefile.simple      Build system                                 │
-│ test-full-iso.sh     Automated testing script                     │
+│ kernel/kernel.c              Main kernel (~3400 lines)             │
+│ kernel/commands/*.c          Modular command system               │
+│ kernel/net_integration.c     Network driver abstraction           │
+│ drivers/rtl8139.c            RTL8139 network driver               │
+│ drivers/e1000.c              Intel e1000 network driver           │
+│ boot/boot.s                  Multiboot bootloader                 │
+│ Makefile                     Build system                         │
 │                                                                    │
-│ README.md            Main documentation                            │
-│ FULL_ISO_GUIDE.md    Detailed usage guide                         │
-│ FEATURE_COMPARISON.md Simulator vs Kernel comparison              │
+│ README.md                    Main documentation                    │
+│ NETWORKING.md                Network implementation details        │
+│ DRIVER_ARCHITECTURE.md       Driver system architecture           │
 └────────────────────────────────────────────────────────────────────┘
 
-┌─ KNOWN LIMITATIONS ───────────────────────────────────────────────┐
-│ • No persistence (changes lost on reboot)                          │
+┌─ KNOWN "FEATURES" (Not Bugs!) ────────────────────────────────────┐
+│ • No persistence (changes vanish on reboot - like your dreams)     │
 │ • Maximum 256 filesystem entries                                   │
-│ • No file content storage (metadata only)                          │
-│ • Single-tasking (no multitasking)                                 │
-│ • No networking support                                            │
-│ • US QWERTY keyboard only                                          │
+│ • No file content storage (just vibes and metadata)                │
+│ • Single-tasking (one thing at a time, like my brain)              │
+│ • US QWERTY keyboard only (sorry international vibers)             │
+│ • DNS works, TCP available but no HTTP client (yet)                │
 └────────────────────────────────────────────────────────────────────┘
 
 ┌─ TROUBLESHOOTING ─────────────────────────────────────────────────┐
 │ Issue: Keyboard not responding                                     │
-│ Fix:   Wait 2-3 seconds after boot, try pressing keys multiple    │
-│        times                                                       │
+│ Fix:   Wait 2-3 seconds after boot, mash keys until it works      │
 │                                                                    │
 │ Issue: Login fails                                                 │
-│ Fix:   Check spelling (case-sensitive), verify password:          │
+│ Fix:   Check spelling (case-sensitive!)                           │
 │        admin=slopOS123, user=password                              │
+│                                                                    │
+│ Issue: No network                                                  │
+│ Fix:   Make sure you're using -device rtl8139 or e1000 in QEMU    │
+│        Run 'gimmeip' to retry DHCP                                 │
 │                                                                    │
 │ Issue: Black screen                                                │
 │ Fix:   Check VM boot order, verify ISO is mounted                 │
 └────────────────────────────────────────────────────────────────────┘
 
 ╔════════════════════════════════════════════════════════════════════╗
-║  For more information, see: README.md and FULL_ISO_GUIDE.md        ║
+║  For more info: README.md, NETWORKING.md, DRIVER_ARCHITECTURE.md   ║
+║  Keep it sloppy! 🎉                                                ║
 ╚════════════════════════════════════════════════════════════════════╝

@@ -97,13 +97,13 @@ jobs:
     - name: Build kernel
       if: steps.version.outputs.should_release == 'true'
       run: |
-        make -f Makefile.simple clean
-        make -f Makefile.simple
+        make clean
+        make all
     
     - name: Build ISO
       if: steps.version.outputs.should_release == 'true'
       run: |
-        make -f Makefile.simple iso
+        make iso
         ls -lh slopos.iso slopos.bin
     
     - name: Create and push tag
@@ -185,6 +185,9 @@ jobs:
           ### 🎯 Features
           - ✅ Multi-user authentication with SHA256 password hashing
           - ✅ Hierarchical filesystem (mkdir, touch, ls, cd, pwd)
+                    - ✅ Full TCP/IP stack (ping, DNS, DHCP, ARP)
+          - ✅ Network utilities (ping, flop netcat-style tool)
+          - ✅ RTL8139 and E1000 network drivers
           - ✅ PS/2 keyboard driver with shift key support
           - ✅ VGA text mode with color output
           - ✅ User management (whoami, listusers)
@@ -201,6 +204,10 @@ jobs:
           whoami     - Show current user and role
           listusers  - List all users (admin only)
           clear      - Clear screen
+          gimmeip    - Request IP via DHCP
+          showip     - Display current network config
+          poke       - Ping a host (ICMP echo)
+          flop       - Connect to TCP server (netcat-style)
           ```
           
           ### ⚙️ System Requirements

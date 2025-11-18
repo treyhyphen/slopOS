@@ -1,47 +1,19 @@
-name: Build Simulator
+name: Build Simulator (DEPRECATED)
+
+# This workflow is deprecated - the project now uses Makefile for bootable ISO builds
+# See build-iso.yml instead
 
 on:
-  push:
-    branches:
-      - '**'  # Build on any branch
-    paths:
-      - 'src/**'
-      - 'Makefile'
-      - '.github/workflows/build-and-release.yml'
-  pull_request:
-    paths:
-      - 'src/**'
-      - 'Makefile'
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger only
 
 jobs:
   build-simulator:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Install dependencies
+    - name: Deprecated Notice
       run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential
-    
-    - name: Build simulator
-      run: |
-        make clean
-        make
-        mv slopOS slopos_sim
-        chmod +x slopos_sim
-    
-    - name: Test simulator
-      run: |
-        echo "✅ Simulator built successfully"
-        ls -lh slopos_sim
-    
-    - name: Upload simulator artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: slopos-simulator
-        path: slopos_sim
-        retention-days: 30
+        echo "⚠️  This workflow is deprecated."
+        echo "The project no longer has a simulator build."
+        echo "Use the build-iso.yml workflow to build the bootable ISO instead."
+        exit 1
