@@ -6,25 +6,25 @@ There are multiple Makefiles in the project:
 
 - **`Makefile`** - Builds the simulator (not the bootable kernel)
 - **`Makefile.simple`** - Builds from `src/slopos.c` (old version)
-- **`Makefile.kernel`** - Builds from `kernel/kernel.c` ✅ **USE THIS ONE!**
+- **`Makefile`** - Builds from `kernel/kernel.c` ✅ **USE THIS ONE!**
 
 ## Quick Build
 
 ```bash
 # Clean previous builds
-make -f Makefile.kernel clean
+make clean
 
 # Build kernel binary
-make -f Makefile.kernel all
+make all
 
 # Create bootable ISO
-make -f Makefile.kernel iso
+make iso
 ```
 
 ## All-in-One Command
 
 ```bash
-make -f Makefile.kernel clean all iso
+make clean all iso
 ```
 
 ## Testing with DHCP
@@ -109,13 +109,13 @@ Network statistics:
 
 ### Build uses old code
 **Problem**: Using wrong Makefile
-**Solution**: Always use `make -f Makefile.kernel`
+**Solution**: Always use `make`
 
 ### Kernel size is ~32KB instead of ~45KB
 **Problem**: Built without DHCP code
 **Solution**: 
 ```bash
-make -f Makefile.kernel clean all iso
+make clean all iso
 ```
 
 ## File Locations
@@ -164,13 +164,20 @@ During boot, you should see:
 ❌ **Forgetting to rebuild after editing kernel.c**
 - Old binary won't have your changes
 
-✅ **Always use: `make -f Makefile.kernel clean all iso`**
+## ✅ Recommended Workflow
+
+✅ **Always use: `make clean all iso`**
+
+### Quick Test Build
+
+```bash
+make clean all iso
 
 ## Quick Reference
 
 ```bash
 # Build everything from scratch
-make -f Makefile.kernel clean all iso
+make clean all iso
 
 # Test with DHCP
 ./test-dhcp.sh
@@ -189,11 +196,11 @@ ls -lh slopos.bin
 ## Summary
 
 1. ✅ Edit code in `kernel/kernel.c`
-2. ✅ Build with `make -f Makefile.kernel clean all iso`
+2. ✅ Build with `make clean all iso`
 3. ✅ Test with `./test-dhcp.sh` or manual QEMU command
 4. ✅ Look for DHCP messages during boot
 5. ✅ Run `ifconfig` to verify [DHCP configured] status
 
 ---
 
-**Remember**: Always use `Makefile.kernel` to build the bootable kernel with networking!
+**Remember**: Always use `Makefile` to build the bootable kernel with networking!

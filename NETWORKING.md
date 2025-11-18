@@ -74,7 +74,7 @@ To add support for a new network card:
        &my_driver,  // Add here
    };
    ```
-4. **Update Makefile.kernel** to compile the new driver
+4. **Update Makefile** to compile the new driver
 
 The kernel automatically scans the PCI bus and activates the first supported card found.
 

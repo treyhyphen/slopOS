@@ -24,9 +24,9 @@
 - `isodir/boot/grub/grub.cfg` - GRUB configuration
 
 ## Build System
-- `Makefile.kernel` - Primary build system
-- Build: `make -f Makefile.kernel all iso`
-- Clean: `make -f Makefile.kernel clean`
+- `Makefile` - Primary build system
+- Build: `make all iso`
+- Clean: `make clean`
 
 ## Binaries
 - `slopos.bin` - Bootable kernel (55KB)

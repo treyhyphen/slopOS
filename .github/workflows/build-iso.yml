@@ -51,7 +51,7 @@ jobs:
     - name: Check for kernel files
       id: check_kernel
       run: |
-        if [ -d "boot" ] && [ -d "kernel" ] && [ -f "Makefile.kernel" ] && [ -f "kernel/kernel.c" ] && [ -f "boot/boot.s" ]; then
+        if [ -d "boot" ] && [ -d "kernel" ] && [ -f "Makefile" ] && [ -f "kernel/kernel.c" ] && [ -f "boot/boot.s" ]; then
           echo "kernel_exists=true" >> $GITHUB_OUTPUT
           echo "✅ Kernel source found - will build ISO"
         else
@@ -62,12 +62,12 @@ jobs:
     - name: Build kernel
       if: steps.check_kernel.outputs.kernel_exists == 'true'
       run: |
-        make -f Makefile.kernel all
+        make all
     
     - name: Build ISO
       if: steps.check_kernel.outputs.kernel_exists == 'true'
       run: |
-        make -f Makefile.kernel iso
+        make iso
     
     - name: Verify ISO
       if: steps.check_kernel.outputs.kernel_exists == 'true'

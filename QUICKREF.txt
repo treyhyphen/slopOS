@@ -3,10 +3,10 @@
 ╚════════════════════════════════════════════════════════════════════╝
 
 ┌─ BUILD COMMANDS ──────────────────────────────────────────────────┐
-│ make -f Makefile.kernel clean    # Clean build                    │
-│ make -f Makefile.kernel all      # Compile kernel                 │
-│ make -f Makefile.kernel iso      # Create bootable ISO            │
-│ ./test-dhcp.sh                   # Test with networking           │
+│ make clean                       # Clean build                     │
+│ make all                         # Compile kernel                  │
+│ make iso                         # Create bootable ISO             │
+│ ./test-dhcp.sh                   # Test with networking            │
 └────────────────────────────────────────────────────────────────────┘
 
 ┌─ TESTING ─────────────────────────────────────────────────────────┐
@@ -51,12 +51,12 @@
 │ gimmeip               Auto-grab an IP (DHCP)                      │
 │ poke <ip> [count]     Poke a host (default: 5 pokes)              │
 │ wherez <hostname>     Find where a site lives (DNS)               │
-│ vibe <ip> <port>      Connect to remote host (netcat vibes)      │
-│ vibe -l <port>        Listen for incoming connections            │
+│ flop <ip> <port>      Connect to remote host (netcat style)       │
+│ flop -l <port>        Listen for incoming connections             │
 │ arp                   See who's on the LAN                        │
 │ netstat               Network stats and vibes                     │
 │ route                 Check the routing table                     │
-│                       (Use CTRL+C to close vibe connection)       │
+│                       (Use CTRL+C to close flop connection)        │
 └────────────────────────────────────────────────────────────────────┘
 
 ┌─ GUI COMMANDS (Get Visual!) ──────────────────────────────────────┐
@@ -133,7 +133,7 @@
 │ drivers/rtl8139.c            RTL8139 network driver               │
 │ drivers/e1000.c              Intel e1000 network driver           │
 │ boot/boot.s                  Multiboot bootloader                 │
-│ Makefile.kernel              Build system                         │
+│ Makefile                     Build system                         │
 │                                                                    │
 │ README.md                    Main documentation                    │
 │ NETWORKING.md                Network implementation details        │

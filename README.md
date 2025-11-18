@@ -36,14 +36,9 @@ Everything except this specific section of the readme was entirely vibed togethe
 
 ### Building This Masterpiece
 
-**⚠️ Important**: Use `Makefile.kernel` to build the bootable ISO with networking!
-
 ```bash
-# Build the simulator (command-line version, no networking)
-make
-
-# Build the actual bootable ISO with DHCP support ✨
-make -f Makefile.kernel clean all iso
+# Build the bootable ISO with networking support ✨
+make clean all iso
 
 # Test in QEMU (basic, no networking)
 qemu-system-i386 -cdrom slopos.iso -m 32M
@@ -156,8 +151,8 @@ route                        # Show routing table
 poke 10.0.2.2                # Send ICMP echo to gateway
 gimmeip                      # Request IP via DHCP
 wherez google.com            # DNS lookup - find where a site lives
-vibe 10.0.2.2 80             # Connect to remote host (netcat-style)
-vibe -l 8080                 # Listen for incoming connections
+flop 10.0.2.2 80             # Connect to remote host (netcat-style)
+flop -l 8080                 # Listen for incoming connections
 ```
 
 Features:
@@ -171,7 +166,7 @@ Features:
 - **DHCP client** (automatically obtains IP address at boot!)
 - **DNS resolver** (look up domain names!)
 - **Network statistics** (RX/TX packet counts and errors)
-- **Netcat-like tool** (`vibe` command for TCP connections)
+- **Netcat-like tool** (`flop` command for TCP connections)
 - Automatic configuration via DHCP (10.0.2.15/24 default in QEMU)
 
 To enable networking in QEMU:
@@ -196,7 +191,7 @@ Now you can ping slopOS from your host! Try: `ping 10.0.2.15`
 | `gimmeip` | Grab an IP via DHCP | `gimmeip` | ⭐⭐⭐ |
 | `poke` | Ping a host (default 5 packets) | `poke google.com` | ⭐⭐⭐ |
 | `wherez` | DNS lookup for domain | `wherez github.com` | ⭐⭐⭐ |
-| `vibe` | Connect/listen TCP (netcat vibes) | `vibe -l 8080` | ⭐⭐⭐⭐⭐ |
+| `flop` | Connect/listen TCP (netcat style) | `flop -l 8080` | ⭐⭐⭐⭐⭐ |
 | `whosthere` | See all the vibers (admin flex) | `whosthere` | ⭐⭐ |
 | `passwd` | Change password to something you'll forget | `passwd` | ⭐⭐⭐ |
 | `recruit` | Invite a new user who'll be gone on reboot | `recruit bob pass` | ⭐⭐⭐⭐ |

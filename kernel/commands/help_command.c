@@ -21,8 +21,8 @@ void cmd_help(void) {
     terminal_writestring("  route            - routing vibes\n");
     terminal_writestring("  poke <ip|host> [count] - poke a host (default: 5)\n");
     terminal_writestring("  wherez <host>    - find where a site lives\n");
-    terminal_writestring("  vibe <ip> <port> - connect to remote (netcat-style)\n");
-    terminal_writestring("  vibe -l <port>   - listen for connections\n");
+    terminal_writestring("  flop <ip> <port> - connect to remote (netcat-style)\n");
+    terminal_writestring("  flop -l <port>   - listen for connections\n");
     if (!gui_mode) {
         terminal_writestring("  govisual         - enter visual mode\n");
     } else {

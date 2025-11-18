@@ -9,7 +9,7 @@ echo ""
 # Build the ISO if needed
 if [ ! -f slopos.iso ]; then
     echo "Building slopOS ISO..."
-    make -f Makefile.kernel clean all iso
+    make clean all iso
 fi
 
 echo "Starting QEMU with networking support..."

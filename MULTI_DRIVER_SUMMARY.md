@@ -22,7 +22,7 @@ Successfully refactored slopOS networking from a monolithic RTL8139-only impleme
   - Added calls to net_driver_init() instead of rtl8139_init()
   - Updated net_send() and net_poll() to use driver abstraction
   
-- **`Makefile.kernel`**:
+- **`Makefile`**:
   - Added compilation rules for all driver files
   - Links drivers with kernel (~46KB total)
   
@@ -60,7 +60,7 @@ typedef struct NetworkDriver {
 Adding a new driver requires:
 1. Create `drivers/newdriver.c` with NetworkDriver implementation
 2. Register in `drivers/net_registry.c`
-3. Update `Makefile.kernel`
+3. Update `Makefile`
 
 ### 4. Supported Hardware
 - **RTL8139**: ✅ Fully functional (10EC:8139)
@@ -70,7 +70,7 @@ Adding a new driver requires:
 
 The system boots successfully with:
 ```bash
-make -f Makefile.kernel clean all iso
+make clean all iso
 ./test-dhcp.sh
 ```
 

@@ -33,4 +33,4 @@ BEGIN { skip = 0; }
 mv "$KERNEL_FILE.tmp" "$KERNEL_FILE"
 
 echo "Done! Backup saved to $BACKUP_FILE"
-echo "Now run: make -f Makefile.kernel clean && make -f Makefile.kernel all"
+echo "Now run: make clean && make all"

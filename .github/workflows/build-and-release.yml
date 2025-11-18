@@ -1,6 +1,6 @@
 name: Build Simulator (DEPRECATED)
 
-# This workflow is deprecated - the project now uses Makefile.kernel for bootable ISO builds
+# This workflow is deprecated - the project now uses Makefile for bootable ISO builds
 # See build-iso.yml instead
 
 on:

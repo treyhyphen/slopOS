@@ -185,7 +185,7 @@ const NetworkDriver* network_drivers[] = {
 
 ### Step 3: Update Makefile
 
-Edit `Makefile.kernel`:
+Edit `Makefile`:
 
 ```makefile
 DRIVER_OBJS = drivers/rtl8139.o drivers/e1000.o drivers/mydriver.o drivers/net_registry.o
@@ -197,7 +197,7 @@ drivers/mydriver.o: drivers/mydriver.c
 ### Step 4: Build and Test
 
 ```bash
-make -f Makefile.kernel clean all iso
+make clean all iso
 qemu-system-i386 -cdrom slopos.iso -m 32M -netdev user,id=net0 -device mydevice,netdev=net0
 ```
 

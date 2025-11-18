@@ -367,8 +367,8 @@ static TCPConnection tcp_connections[MAX_TCP_CONNECTIONS];
 static uint32_t tcp_isn = 12345;  // Initial sequence number (should be random)
 static uint16_t ip_id_counter = 1;  // IP packet ID counter
 
-// Global TCP connection for vibe command
-static int vibe_conn_id = -1;
+// Global TCP connection for flop command
+static int flop_conn_id = -1;
 static uint16_t dns_query_id = 1;
 static char dns_current_query[DNS_MAX_NAME];  // Track current query for response handler
 static uint16_t dns_query_port = 0;  // Port used for current DNS query
@@ -951,11 +951,11 @@ void read_line(char* buffer, size_t max_len) {
         if (interrupt_command) {
             interrupt_command = false;
             
-            // If vibe is active, close the connection
-            if (vibe_conn_id >= 0) {
+            // If flop is active, close the connection
+            if (flop_conn_id >= 0) {
                 terminal_writestring("closing connection...\n");
-                tcp_close(vibe_conn_id);
-                vibe_conn_id = -1;
+                tcp_close(flop_conn_id);
+                flop_conn_id = -1;
             }
             
             buffer[0] = '\0';
@@ -3235,16 +3235,16 @@ bool parse_ip(const char* str, uint8_t* ip) {
     return true;
 }
 
-void cmd_vibe(char* arg1, char* arg2) {
+void cmd_flop(char* arg1, char* arg2) {
     if (!net_device.initialized) {
         terminal_writestring("yo network ain't ready yet\n");
         return;
     }
     
-    // Check for listen mode: vibe -l <port>
+    // Check for listen mode: flop -l <port>
     if (arg1 && strcmp(arg1, "-l") == 0) {
         if (!arg2) {
-            terminal_writestring("Usage: vibe -l <port>\n");
+            terminal_writestring("Usage: flop -l <port>\n");
             return;
         }
         
@@ -3256,12 +3256,12 @@ void cmd_vibe(char* arg1, char* arg2) {
         
         int conn_id = tcp_listen(port);
         if (conn_id < 0) {
-            terminal_writestring("couldn't start vibing on that port\n");
+            terminal_writestring("couldn't start flopping on that port\n");
             return;
         }
         
-        vibe_conn_id = conn_id;
-        terminal_writestring("aight we vibing on port ");
+        flop_conn_id = conn_id;
+        terminal_writestring("aight we flopping on port ");
         char buf[16];
         itoa_helper(port, buf);
         terminal_writestring(buf);
@@ -3270,11 +3270,11 @@ void cmd_vibe(char* arg1, char* arg2) {
         return;
     }
     
-    // Connect mode: vibe <ip> <port>
+    // Connect mode: flop <ip> <port>
     if (!arg1 || !arg2) {
         terminal_writestring("Usage:\n");
-        terminal_writestring("  vibe <ip> <port>     - connect to remote host\n");
-        terminal_writestring("  vibe -l <port>       - listen on local port\n");
+        terminal_writestring("  flop <ip> <port>     - connect to remote host\n");
+        terminal_writestring("  flop -l <port>       - listen on local port\n");
         return;
     }
     
@@ -3314,7 +3314,7 @@ void cmd_vibe(char* arg1, char* arg2) {
         return;
     }
     
-    terminal_writestring("tryna vibe with ");
+    terminal_writestring("tryna flop with ");
     terminal_writestring(arg1);
     terminal_writestring(":");
     char buf[16];
@@ -3332,7 +3332,7 @@ void cmd_vibe(char* arg1, char* arg2) {
     }
     
     terminal_writestring("MAC resolved! ");
-    vibe_conn_id = conn_id;
+    flop_conn_id = conn_id;
     
     // Wait a bit for connection to establish
     terminal_writestring("sending SYN, waiting for handshake...\n");
@@ -3357,7 +3357,7 @@ void cmd_vibe(char* arg1, char* arg2) {
                         interrupt_command = false;
                         terminal_writestring("\nclosing connection...\n");
                         tcp_close(conn_id);
-                        vibe_conn_id = -1;
+                        flop_conn_id = -1;
                         return;
                     }
                     
@@ -3439,7 +3439,7 @@ void cmd_vibe(char* arg1, char* arg2) {
             }
             
             terminal_writestring("connection closed\n");
-            vibe_conn_id = -1;
+            flop_conn_id = -1;
             return;
         }
         
@@ -3451,7 +3451,7 @@ void cmd_vibe(char* arg1, char* arg2) {
     if (state != TCP_ESTABLISHED) {
         terminal_writestring("connection timed out or rejected\n");
         tcp_close(conn_id);
-        vibe_conn_id = -1;
+        flop_conn_id = -1;
     }
 }
 
@@ -3560,10 +3560,10 @@ void process_command(char* line) {
         } else {
             cmd_nslookup(hostname);
         }
-    } else if (strcmp(cmd, "vibe") == 0) {
+    } else if (strcmp(cmd, "flop") == 0) {
         char* arg1 = strtok(NULL, " ");
         char* arg2 = strtok(NULL, " ");
-        cmd_vibe(arg1, arg2);
+        cmd_flop(arg1, arg2);
     } else if (strcmp(cmd, "passwd") == 0) {
         cmd_passwd();
     } else if (strcmp(cmd, "recruit") == 0) {
@@ -3773,10 +3773,10 @@ void kernel_main(void) {
         // Poll network for incoming packets
         net_poll();
         
-        // Check for TCP data when vibe is active
-        if (vibe_conn_id >= 0 && tcp_is_established(vibe_conn_id)) {
+        // Check for TCP data when flop is active
+        if (flop_conn_id >= 0 && tcp_is_established(flop_conn_id)) {
             uint8_t recv_buf[256];
-            int received = tcp_receive_data(vibe_conn_id, recv_buf, sizeof(recv_buf) - 1);
+            int received = tcp_receive_data(flop_conn_id, recv_buf, sizeof(recv_buf) - 1);
             if (received > 0) {
                 recv_buf[received] = '\0';
                 terminal_writestring((char*)recv_buf);

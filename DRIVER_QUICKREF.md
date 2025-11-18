@@ -2,7 +2,7 @@
 
 ## Building
 ```bash
-make -f Makefile.kernel clean all iso
+make clean all iso
 ```
 
 ## Testing
@@ -81,7 +81,7 @@ const NetworkDriver* network_drivers[] = {
 };
 ```
 
-3. **Build** - Update `Makefile.kernel`:
+3. **Build** - Update `Makefile`:
 ```makefile
 DRIVER_OBJS = drivers/rtl8139.o drivers/mydriver.o drivers/net_registry.o
 
