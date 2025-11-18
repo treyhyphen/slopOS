@@ -1,5 +1,5 @@
 /*
- * slopOS Kernel v0.1.0 - Full Featured Bootable OS
+ * slopOS Kernel v0.2.0 - Full Featured Bootable OS
  * Complete implementation with authentication, filesystem, and GUI
  */
 
@@ -3650,7 +3650,7 @@ void kernel_main(void) {
     
     // Boot message
     terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
-    terminal_writestring("slopOS v0.1.0 - Full Featured Bootable OS\n");
+    terminal_writestring("slopOS v0.2.0 - Full Featured Bootable OS\n");
     terminal_writestring("==========================================\n\n");
     
     terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));

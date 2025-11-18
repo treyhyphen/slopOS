@@ -7,7 +7,7 @@ echo ""
 #!/bin/bash
 
 # Test script for slopOS with authentication and GUI
-echo "Testing slopOS v0.1.0 with Authentication..."
+echo "Testing slopOS v0.2.0 with Authentication..."
 gcc src/main.c -o slopos_sim
 
 # Test login and GUI functionality

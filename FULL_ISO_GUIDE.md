@@ -224,6 +224,6 @@ Edit `kernel/kernel.c` and rebuild:
 4. Test: `qemu-system-i386 -cdrom slopos.iso -m 32`
 
 ## Version Information
-- Version: 0.1.0
-- Kernel: Full-featured with auth/fs/keyboard
+- Version: 0.2.0
+- Kernel: Full-featured with auth/fs/keyboard/networking
 - Updated: 2024

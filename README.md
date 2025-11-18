@@ -1,4 +1,4 @@
-# slopOS v0.1.0
+# slopOS v0.2.0
 
 ## WTF WHY
 
@@ -357,7 +357,17 @@ If something breaks:
 
 ## 🎪 Current Version
 
-**v0.1.0** - "It Boots, I Guess" Edition
+## 📜 Version History
+
+**v0.2.0** - "TCP/IP Flopping" Edition
+- Full networking stack with TCP/IP support
+- RTL8139 and E1000 network drivers
+- DHCP client, DNS resolver, ARP, ICMP
+- `flop` command (netcat-style TCP tool)
+- Modular command system refactoring
+- GUI mode with window management
+
+**v0.2.0** - "It Boots, I Guess" Edition
 
 Features:
 - Boots (sometimes)

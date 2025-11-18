@@ -334,7 +334,7 @@ qemu-system-i386 -cdrom slopos.iso -m 32M \
 
 ### Expected Output
 ```
-slopOS v0.1.0 - Full Featured Bootable OS
+slopOS v0.2.0 - Full Featured Bootable OS
 ==========================================
 
 Initializing system...
