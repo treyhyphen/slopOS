@@ -38,12 +38,25 @@ def extract_response_text(response: List) -> str:
     text_parts = []
     for item in response:
         if isinstance(item, dict):
+            # Skip items that are just URIs or other metadata
+            kind = item.get('kind', '')
+            if kind in ('codeblockUri', 'uri', 'inlineReference'):
+                continue
+                
             if 'value' in item and isinstance(item['value'], str):
                 text_parts.append(item['value'])
             elif 'text' in item:
                 text_parts.append(item['text'])
     
-    return " ".join(text_parts).strip()
+    # Concatenate all parts - don't add spaces between them as they might be code blocks
+    full_text = "".join(text_parts).strip()
+    
+    # If response is incomplete/truncated, indicate this
+    if full_text and not full_text.endswith(('.', '!', '?', '```', '````', '\n')):
+        # Response seems truncated, add note
+        full_text += "\n\n*[Response was incomplete/canceled]*"
+    
+    return full_text
 
 
 def format_timestamp(timestamp_ms: int) -> str:
@@ -224,6 +237,36 @@ def sanitize_anchor(text: str) -> str:
     return anchor[:100]
 
 
+def sanitize_markdown(text: str) -> str:
+    """
+    Ensure markdown code blocks are properly closed.
+    Counts backtick fences (both ``` and ````) and adds closing fence if needed.
+    """
+    # Parse lines to find fence markers
+    lines = text.split('\n')
+    quad_fence_lines = []
+    triple_fence_lines = []
+    
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        # Check for fence markers (with or without language)
+        if stripped.startswith('````'):
+            quad_fence_lines.append(i)
+        elif stripped.startswith('```'):
+            triple_fence_lines.append(i)
+    
+    # Close unclosed quad fences
+    if len(quad_fence_lines) % 2 != 0:
+        text += '\n````\n'
+    
+    # Close unclosed triple fences
+    elif len(triple_fence_lines) % 2 != 0:
+        text += '\n```\n'
+    
+    return text
+
+
+
 def get_first_line(text: str) -> str:
     """Get the first line of text."""
     lines = text.split('\n')
@@ -277,11 +320,15 @@ def render_markdown(all_conversations: List[Tuple[str, str, str, int]]) -> str:
             md_lines.append(f"## <a id=\"{anchor}\"></a>{prompt_num}. {category}: {first_line}\n")
             md_lines.append("[↑ Back to Table of Contents](#table-of-contents)\n")
             md_lines.append(f"**User Prompt** *[{formatted_time}]*\n")
-            md_lines.append(f"{text}\n")
+            # Sanitize user prompt to close any unclosed code blocks
+            sanitized_text = sanitize_markdown(text)
+            md_lines.append(f"{sanitized_text}\n")
             prompt_num += 1
         else:
             md_lines.append(f"### Assistant Response [{formatted_time}]\n")
-            md_lines.append(f"{text}\n")
+            # Sanitize assistant response to close any unclosed code blocks
+            sanitized_text = sanitize_markdown(text)
+            md_lines.append(f"{sanitized_text}\n")
     
     return "\n".join(md_lines)
 
