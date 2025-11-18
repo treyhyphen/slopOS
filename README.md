@@ -19,6 +19,10 @@ So now it's out here on GitHub! Because "reasons"! Maybe I'll slop some new feat
 
 Everything except this specific section of the readme was entirely vibed together with GitHub Copilot w/ Claude Sonnet 4.5. I've tried to keep exporting and preserving my chats in the `.copilot_chats` directory as best as I can remember
 
+### 💬 Want to See How the Sausage Was Made?
+
+Check out the [**full chat history**](copilot_chat_history.md) to witness the complete dumpster fire of prompts that created this mess. Every "add networking support", every "fix the thing", every "wait why doesn't this work" - it's all there, categorized and timestamped for your viewing pleasure. It's like watching a train wreck in slow motion, except the train is made of AI responses and questionable architectural decisions.
+
 ## 🎪 What Makes slopOS Special?
 
 - ✨ **Boots on REAL hardware!** (Your BIOS will be very confused)
