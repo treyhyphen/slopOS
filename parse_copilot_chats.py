@@ -7,7 +7,8 @@ Extracts user prompts and responses with timestamps, deduplicating identical ent
 import json
 import os
 import re
-from datetime import datetime
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from pathlib import Path
 from typing import List, Dict, Set, Tuple
 
@@ -60,9 +61,12 @@ def extract_response_text(response: List) -> str:
 
 
 def format_timestamp(timestamp_ms: int) -> str:
-    """Convert millisecond timestamp to readable format."""
-    dt = datetime.fromtimestamp(timestamp_ms / 1000)
-    return dt.strftime("%Y-%m-%d %H:%M:%S")
+    """Convert millisecond timestamp to readable format in US/Eastern timezone."""
+    # Convert from UTC to US/Eastern
+    dt_utc = datetime.fromtimestamp(timestamp_ms / 1000, tz=timezone.utc)
+    eastern = ZoneInfo('America/New_York')
+    dt_eastern = dt_utc.astimezone(eastern)
+    return dt_eastern.strftime("%Y-%m-%d %H:%M:%S %Z")
 
 
 def categorize_prompt(text: str) -> str:
@@ -315,11 +319,18 @@ def render_markdown(all_conversations: List[Tuple[str, str, str, int]]) -> str:
     current_session_end = None
     
     ONE_HOUR_MS = 60 * 60 * 1000  # 1 hour in milliseconds
+    eastern = ZoneInfo('America/New_York')
     
+    # Convert all timestamps to Eastern timezone for accurate day/session calculation
+    eastern_timestamps = []
     for ts in timestamps:
-        dt = datetime.fromtimestamp(ts / 1000)
-        unique_days.add(dt.date())
-        
+        dt_utc = datetime.fromtimestamp(ts / 1000, tz=timezone.utc)
+        dt_eastern = dt_utc.astimezone(eastern)
+        eastern_timestamps.append((ts, dt_eastern))
+        unique_days.add(dt_eastern.date())
+    
+    # Calculate sessions based on Eastern timezone
+    for ts, dt_eastern in eastern_timestamps:
         if current_session_start is None:
             # Start new session
             current_session_start = ts
