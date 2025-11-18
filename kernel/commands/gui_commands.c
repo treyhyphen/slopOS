@@ -19,6 +19,9 @@ void cmd_startgui(void) {
     const char* content = "Welcome to GUI mode!";
     strncpy(win->buffer, content, 1023);
     win->buffer_len = strlen(content);
+    
+    // Render the initial window
+    render_all_windows();
 }
 
 void cmd_exitgui(void) {

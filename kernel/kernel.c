@@ -522,7 +522,7 @@ void calibrate_cpu_speed(void) {
 }
 
 // Delay for specified milliseconds using TSC
-static void delay_ms(uint32_t ms) {
+void delay_ms(uint32_t ms) {
     if (tsc_freq_khz == 0) return;
     
     uint64_t start = rdtsc();
@@ -541,7 +541,7 @@ static void delay_ms(uint32_t ms) {
 }
 
 // Delay for specified seconds
-static void delay_seconds(uint32_t seconds) {
+void delay_seconds(uint32_t seconds) {
     delay_ms(seconds * 1000);
 }
 
@@ -654,7 +654,7 @@ int atoi(const char* str) {
 // VGA FUNCTIONS
 // ====================
 
-static inline uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg) {
+uint8_t vga_entry_color(uint8_t fg, uint8_t bg) {
     return fg | bg << 4;
 }
 
@@ -699,27 +699,22 @@ void terminal_putentryat(char c, uint8_t color, size_t x, size_t y) {
 }
 
 void terminal_scroll(void) {
-    // In GUI mode, don't scroll - just wrap to bottom line
-    if (gui_mode) {
-        terminal_row = VGA_HEIGHT - 1;
-        terminal_column = 0;
-        // Clear the bottom line
-        for (size_t x = 0; x < VGA_WIDTH; x++) {
-            terminal_buffer[(VGA_HEIGHT - 1) * VGA_WIDTH + x] = vga_entry(' ', terminal_color);
-        }
-        return;
-    }
-    
-    // Normal scrolling for non-GUI mode
+    // Normal scrolling - shift everything up one line
     for (size_t y = 0; y < VGA_HEIGHT - 1; y++) {
         for (size_t x = 0; x < VGA_WIDTH; x++) {
             terminal_buffer[y * VGA_WIDTH + x] = terminal_buffer[(y + 1) * VGA_WIDTH + x];
         }
     }
+    // Clear the bottom line
     for (size_t x = 0; x < VGA_WIDTH; x++) {
         terminal_buffer[(VGA_HEIGHT - 1) * VGA_WIDTH + x] = vga_entry(' ', terminal_color);
     }
     terminal_row = VGA_HEIGHT - 1;
+    
+    // In GUI mode, redraw windows after scrolling so they stay visible
+    if (gui_mode) {
+        render_all_windows();
+    }
 }
 
 void terminal_putchar(char c) {
@@ -1589,6 +1584,11 @@ void send_icmp_request(uint8_t* dest_ip, uint8_t* dest_mac, uint16_t id, uint16_
     icmp->checksum = ip_checksum(icmp, sizeof(ICMPHeader));
     
     net_send(frame, sizeof(frame));
+}
+
+// Wrapper for network_commands.c compatibility
+void send_icmp_echo(uint8_t* dest_ip, uint8_t* dest_mac, uint16_t seq) {
+    send_icmp_request(dest_ip, dest_mac, 0x1234, htons(seq));
 }
 
 // Process ICMP packet
@@ -3210,214 +3210,7 @@ void itoa_hex(int n, char* buf) {
     }
 }
 
-void cmd_ifconfig(void) {
-    if (!net_device.initialized) {
-        terminal_writestring("Network device not initialized\n");
-        terminal_writestring("Make sure you're running in QEMU with: -netdev user,id=net0 -device rtl8139,netdev=net0\n");
-        return;
-    }
-    
-    char buf[16];
-    
-    terminal_writestring("eth0: ");
-    terminal_writestring(net_driver_get_name());
-    terminal_writestring("\n");
-    
-    // DHCP status
-    if (net_device.dhcp_configured) {
-        terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
-        terminal_writestring("  [DHCP configured]\n");
-        terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
-    } else if (net_device.ip[0] != 0) {
-        terminal_setcolor(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK));
-        terminal_writestring("  [Static IP]\n");
-        terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
-    } else {
-        terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK));
-        terminal_writestring("  [No IP address]\n");
-        terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
-    }
-    
-    terminal_writestring("  HWaddr: ");
-    for (int i = 0; i < ETH_ALEN; i++) {
-        char hex[] = "0123456789ABCDEF";
-        terminal_putchar(hex[net_device.mac[i] >> 4]);
-        terminal_putchar(hex[net_device.mac[i] & 0x0F]);
-        if (i < ETH_ALEN - 1) terminal_putchar(':');
-    }
-    terminal_writestring("\n");
-    
-    if (net_device.ip[0] != 0) {
-        terminal_writestring("  inet addr: ");
-        for (int i = 0; i < IP_ADDR_LEN; i++) {
-            itoa_helper(net_device.ip[i], buf);
-            terminal_writestring(buf);
-            if (i < IP_ADDR_LEN - 1) terminal_putchar('.');
-        }
-        terminal_writestring("\n");
-    }
-    
-    if (net_device.gateway[0] != 0) {
-        terminal_writestring("  Gateway: ");
-        for (int i = 0; i < IP_ADDR_LEN; i++) {
-            itoa_helper(net_device.gateway[i], buf);
-            terminal_writestring(buf);
-            if (i < IP_ADDR_LEN - 1) terminal_putchar('.');
-        }
-        terminal_writestring("\n");
-    }
-    
-    if (net_device.netmask[0] != 0) {
-        terminal_writestring("  Netmask: ");
-        for (int i = 0; i < IP_ADDR_LEN; i++) {
-            itoa_helper(net_device.netmask[i], buf);
-            terminal_writestring(buf);
-            if (i < IP_ADDR_LEN - 1) terminal_putchar('.');
-        }
-        terminal_writestring("\n");
-    }
-    
-    if (net_device.dns[0] != 0) {
-        terminal_writestring("  DNS: ");
-        for (int i = 0; i < IP_ADDR_LEN; i++) {
-            itoa_helper(net_device.dns[i], buf);
-            terminal_writestring(buf);
-            if (i < IP_ADDR_LEN - 1) terminal_putchar('.');
-        }
-        terminal_writestring("\n");
-    }
-}
-
-void cmd_arp(void) {
-    if (!net_device.initialized) {
-        terminal_writestring("Network not initialized\n");
-        return;
-    }
-    
-    char buf[16];
-    terminal_writestring("ARP cache:\n");
-    terminal_writestring("IP Address       HW Address\n");
-    
-    int count = 0;
-    for (int i = 0; i < ARP_CACHE_SIZE; i++) {
-        if (net_device.arp_cache[i].valid) {
-            // Print IP
-            for (int j = 0; j < IP_ADDR_LEN; j++) {
-                itoa_helper(net_device.arp_cache[i].ip[j], buf);
-                terminal_writestring(buf);
-                if (j < IP_ADDR_LEN - 1) terminal_putchar('.');
-            }
-            
-            // Padding
-            terminal_writestring("     ");
-            
-            // Print MAC
-            for (int j = 0; j < ETH_ALEN; j++) {
-                char hex[] = "0123456789ABCDEF";
-                terminal_putchar(hex[net_device.arp_cache[i].mac[j] >> 4]);
-                terminal_putchar(hex[net_device.arp_cache[i].mac[j] & 0x0F]);
-                if (j < ETH_ALEN - 1) terminal_putchar(':');
-            }
-            terminal_writestring("\n");
-            count++;
-        }
-    }
-    
-    if (count == 0) {
-        terminal_writestring("(cache empty)\n");
-    }
-}
-
-void cmd_netstat(void) {
-    if (!net_device.initialized) {
-        terminal_writestring("Network not initialized\n");
-        return;
-    }
-    
-    char buf[16];
-    
-    terminal_writestring("Network statistics:\n");
-    
-    terminal_writestring("  RX packets: ");
-    itoa_helper(net_device.rx_packets, buf);
-    terminal_writestring(buf);
-    terminal_writestring("\n");
-    
-    terminal_writestring("  RX errors:  ");
-    itoa_helper(net_device.rx_errors, buf);
-    terminal_writestring(buf);
-    terminal_writestring("\n");
-    
-    terminal_writestring("  TX packets: ");
-    itoa_helper(net_device.tx_packets, buf);
-    terminal_writestring(buf);
-    terminal_writestring("\n");
-    
-    terminal_writestring("  TX errors:  ");
-    itoa_helper(net_device.tx_errors, buf);
-    terminal_writestring(buf);
-    terminal_writestring("\n");
-}
-
-void cmd_route(void) {
-    if (!net_device.initialized) {
-        terminal_writestring("Network not initialized\n");
-        return;
-    }
-    
-    char buf[16];
-    
-    terminal_writestring("Routing table:\n");
-    terminal_writestring("Destination     Gateway         Netmask         Flags  Iface\n");
-    
-    // Default route (via gateway)
-    if (net_device.gateway[0] != 0) {
-        terminal_writestring("0.0.0.0         ");
-        for (int i = 0; i < IP_ADDR_LEN; i++) {
-            itoa_helper(net_device.gateway[i], buf);
-            int len = strlen(buf);
-            terminal_writestring(buf);
-            if (i < IP_ADDR_LEN - 1) {
-                terminal_putchar('.');
-                len++;
-            }
-            // Pad to 16 chars
-            for (int j = len; j < (i == IP_ADDR_LEN - 1 ? 16 : 4); j++) terminal_putchar(' ');
-        }
-        terminal_writestring("0.0.0.0         UG     eth0\n");
-    }
-    
-    // Local network route
-    if (net_device.ip[0] != 0) {
-        // Calculate network address (IP & netmask)
-        for (int i = 0; i < IP_ADDR_LEN; i++) {
-            itoa_helper(net_device.ip[i] & net_device.netmask[i], buf);
-            int len = strlen(buf);
-            terminal_writestring(buf);
-            if (i < IP_ADDR_LEN - 1) {
-                terminal_putchar('.');
-                len++;
-            }
-            // Pad to 16 chars
-            for (int j = len; j < (i == IP_ADDR_LEN - 1 ? 16 : 4); j++) terminal_putchar(' ');
-        }
-        terminal_writestring("0.0.0.0         ");
-        for (int i = 0; i < IP_ADDR_LEN; i++) {
-            itoa_helper(net_device.netmask[i], buf);
-            int len = strlen(buf);
-            terminal_writestring(buf);
-            if (i < IP_ADDR_LEN - 1) {
-                terminal_putchar('.');
-                len++;
-            }
-            // Pad to 16 chars
-            for (int j = len; j < (i == IP_ADDR_LEN - 1 ? 16 : 4); j++) terminal_putchar(' ');
-        }
-        terminal_writestring("U      eth0\n");
-    }
-    
-    terminal_writestring("\nFlags: U=Up, G=Gateway\n");
-}
+// Network Commands - Moved to kernel/commands/network_commands.c
 
 // Parse IP address from string
 bool parse_ip(const char* str, uint8_t* ip) {
@@ -3440,210 +3233,6 @@ bool parse_ip(const char* str, uint8_t* ip) {
     if (octet != 3 || value > 255) return false;
     ip[octet] = value;
     return true;
-}
-
-void cmd_ping(const char* ip_str, int count) {
-    if (!net_device.initialized) {
-        terminal_writestring("Network not initialized\n");
-        return;
-    }
-    
-    // Parse IP address (or resolve hostname)
-    uint8_t target_ip[IP_ADDR_LEN];
-    bool resolved_from_dns = false;
-    
-    if (!parse_ip(ip_str, target_ip)) {
-        // Not an IP address, try DNS resolution
-        terminal_writestring("Resolving hostname ");
-        terminal_writestring(ip_str);
-        terminal_writestring("...\n");
-        
-        if (!dns_resolve(ip_str, target_ip)) {
-            terminal_writestring("Failed to resolve hostname\n");
-            return;
-        }
-        
-        resolved_from_dns = true;
-        terminal_writestring("Resolved to ");
-        for (int i = 0; i < IP_ADDR_LEN; i++) {
-            char buf[4];
-            itoa_helper(target_ip[i], buf);
-            terminal_writestring(buf);
-            if (i < 3) terminal_putchar('.');
-        }
-        terminal_putchar('\n');
-    }
-    
-    // Determine next hop (local or via gateway)
-    uint8_t* arp_target;
-    bool is_local = is_local_subnet(target_ip);
-    
-    if (is_local) {
-        terminal_writestring("Destination is on local network\n");
-        arp_target = target_ip;
-    } else {
-        terminal_writestring("Destination is remote, routing via gateway ");
-        // Show gateway IP
-        char buf[16];
-        for (int i = 0; i < IP_ADDR_LEN; i++) {
-            itoa_helper(net_device.gateway[i], buf);
-            terminal_writestring(buf);
-            if (i < IP_ADDR_LEN - 1) terminal_putchar('.');
-        }
-        terminal_writestring("\n");
-        
-        if (net_device.gateway[0] == 0) {
-            terminal_writestring("No gateway configured - cannot reach remote hosts\n");
-            return;
-        }
-        arp_target = net_device.gateway;
-    }
-    
-    // Check if next hop MAC is in ARP cache
-    uint8_t* next_hop_mac = arp_lookup(arp_target);
-    if (!next_hop_mac) {
-        terminal_writestring("Resolving next hop MAC via ARP...\n");
-        arp_send_request(arp_target);
-        
-        // Wait for ARP reply (3 second timeout)
-        int arp_attempts = 0;
-        while (!next_hop_mac && arp_attempts < 30) {
-            if (interrupt_command) {
-                terminal_writestring("Interrupted\n");
-                return;
-            }
-            net_poll();
-            next_hop_mac = arp_lookup(arp_target);
-            if (next_hop_mac) break;
-            delay_ms(100);  // 100ms delay per attempt = 3 seconds total
-            arp_attempts++;
-        }
-        
-        if (!next_hop_mac) {
-            terminal_writestring("ARP timeout - next hop unreachable\n");
-            return;
-        }
-    }
-    
-    // Initialize ping state
-    // Note: target_ip is the final destination, but next_hop_mac is who we send to
-    ping_state.active = true;
-    ping_state.ping_id = 0x1234; // Fixed ID for simplicity
-    ping_state.pings_sent = 0;
-    ping_state.pings_received = 0;
-    ping_state.ping_count = count;
-    for (int i = 0; i < IP_ADDR_LEN; i++) {
-        ping_state.target_ip[i] = target_ip[i];
-    }
-    for (int i = 0; i < ETH_ALEN; i++) {
-        ping_state.target_mac[i] = next_hop_mac[i];
-    }
-    
-    terminal_writestring("PING ");
-    terminal_writestring(ip_str);
-    terminal_writestring(" (");
-    terminal_writestring(ip_str);
-    terminal_writestring(") sending ");
-    char buf[16];
-    itoa_helper(ping_state.ping_count, buf);
-    terminal_writestring(buf);
-    terminal_writestring(" packets:\n");
-    
-    // Send pings
-    for (int i = 0; i < ping_state.ping_count; i++) {
-        if (interrupt_command) {
-            terminal_writestring("\nInterrupted\n");
-            ping_state.active = false;
-            return;
-        }
-        
-        ping_state.ping_seq = htons(i + 1);
-        ping_state.pings_sent++;
-        
-        terminal_writestring("  Sending ICMP echo request seq=");
-        itoa_helper(i + 1, buf);
-        terminal_writestring(buf);
-        terminal_writestring("...\n");
-        
-        send_icmp_request(ping_state.target_ip, ping_state.target_mac, 
-                         ping_state.ping_id, ping_state.ping_seq);
-        
-        // Wait for reply (1 second timeout)
-        int wait_attempts = 0;
-        int initial_received = ping_state.pings_received;
-        while (ping_state.pings_received == initial_received && wait_attempts < 100) {
-            if (interrupt_command) {
-                terminal_writestring("\nInterrupted\n");
-                ping_state.active = false;
-                return;
-            }
-            net_poll();
-            if (ping_state.pings_received > initial_received) break;
-            delay_ms(10);  // 10ms delay = 1 second total timeout
-            wait_attempts++;
-        }
-        
-        if (ping_state.pings_received == initial_received) {
-            terminal_writestring("  Timeout - no reply\n");
-        }
-        
-        // Delay between pings (1 second)
-        if (i < count - 1) {  // Don't delay after last ping
-            delay_seconds(1);
-        }
-    }
-    
-    // Summary
-    terminal_writestring("\n--- ");
-    terminal_writestring(ip_str);
-    terminal_writestring(" ping statistics ---\n");
-    itoa_helper(ping_state.pings_sent, buf);
-    terminal_writestring(buf);
-    terminal_writestring(" packets transmitted, ");
-    itoa_helper(ping_state.pings_received, buf);
-    terminal_writestring(buf);
-    terminal_writestring(" received, ");
-    
-    int loss = 100 - (ping_state.pings_received * 100 / ping_state.pings_sent);
-    itoa_helper(loss, buf);
-    terminal_writestring(buf);
-    terminal_writestring("% packet loss\n");
-    
-    ping_state.active = false;
-}
-
-void cmd_nslookup(const char* hostname) {
-    if (!net_device.initialized) {
-        terminal_writestring("Network not initialized\n");
-        return;
-    }
-    
-    if (net_device.dns[0] == 0) {
-        terminal_writestring("No DNS server configured. Run 'dhcp' first.\n");
-        return;
-    }
-    
-    terminal_writestring("Looking up ");
-    terminal_writestring(hostname);
-    terminal_writestring("...\n");
-    
-    uint8_t ip[IP_ADDR_LEN];
-    if (dns_resolve(hostname, ip)) {
-        terminal_writestring("Result: ");
-        terminal_writestring(hostname);
-        terminal_writestring(" = ");
-        for (int i = 0; i < IP_ADDR_LEN; i++) {
-            char buf[4];
-            itoa_helper(ip[i], buf);
-            terminal_writestring(buf);
-            if (i < 3) terminal_putchar('.');
-        }
-        terminal_putchar('\n');
-    } else {
-        terminal_writestring("Failed to resolve ");
-        terminal_writestring(hostname);
-        terminal_putchar('\n');
-    }
 }
 
 void cmd_vibe(char* arg1, char* arg2) {
@@ -3863,36 +3452,6 @@ void cmd_vibe(char* arg1, char* arg2) {
         terminal_writestring("connection timed out or rejected\n");
         tcp_close(conn_id);
         vibe_conn_id = -1;
-    }
-}
-
-void cmd_dhcp(void) {
-    if (!net_device.initialized) {
-        terminal_writestring("Network device not initialized\n");
-        return;
-    }
-    
-    terminal_writestring("Starting DHCP client...\n");
-    
-    if (dhcp_client_run()) {
-        terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
-        terminal_writestring("DHCP configuration successful!\n");
-        terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
-        
-        // Show the configuration
-        char buf[16];
-        terminal_writestring("IP address: ");
-        for (int i = 0; i < IP_ADDR_LEN; i++) {
-            itoa_helper(net_device.ip[i], buf);
-            terminal_writestring(buf);
-            if (i < IP_ADDR_LEN - 1) terminal_putchar('.');
-        }
-        terminal_writestring("\n");
-    } else {
-        terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK));
-        terminal_writestring("DHCP failed. No response from DHCP server.\n");
-        terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
-        terminal_writestring("You can set a static IP manually if needed.\n");
     }
 }
 
@@ -4224,20 +3783,10 @@ void kernel_main(void) {
             }
         }
         
-        // In GUI mode, render windows BEFORE prompt to prevent overwriting
+        // In GUI mode, just add a newline before prompt for separation
+        // Don't clear or reposition - let output be visible
         if (gui_mode) {
-            render_all_windows();
-        }
-        
-        // Print prompt at fixed position (bottom of screen) in GUI mode
-        if (gui_mode) {
-            // Position cursor at bottom-left for prompt
-            terminal_row = VGA_HEIGHT - 1;
-            terminal_column = 0;
-            // Clear the prompt line
-            for (size_t x = 0; x < VGA_WIDTH; x++) {
-                terminal_putentryat(' ', terminal_color, x, VGA_HEIGHT - 1);
-            }
+            terminal_writestring("\n");
         }
         
         // Sloppy prompt style: [user vibing in /path]>

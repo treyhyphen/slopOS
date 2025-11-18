@@ -29,9 +29,8 @@ void net_poll(void);
 #define VGA_COLOR_YELLOW 14
 #define VGA_COLOR_WHITE 15
 
-static inline uint8_t vga_entry_color(uint8_t fg, uint8_t bg) {
-    return fg | bg << 4;
-}
+// VGA color helper (defined in kernel.c)
+uint8_t vga_entry_color(uint8_t fg, uint8_t bg);
 
 // Filesystem commands
 void cmd_help(void);

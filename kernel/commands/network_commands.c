@@ -1,33 +1,25 @@
-#include "../kernel_api.h"#include "commands.h"
-
+#include "../kernel_api.h"
+#include "commands.h"
 #include "../net_integration.h"
 
 // This file contains all network-related commands
+// Extracted from kernel.c to improve code organization
 
-// Extracted from kernel.c to improve code organization// External references to kernel data structures
-
+// External references to kernel data structures
 extern NetworkDevice net_device;
+extern PingState ping_state;
 
-void cmd_ifconfig(void);extern PingState ping_state;
-
-void cmd_arp(void);
-
-void cmd_netstat(void);// External function declarations
-
-void cmd_route(void);extern void arp_send_request(uint8_t* target_ip);
-
-void cmd_ping(const char* ip_str, int count);extern uint8_t* arp_lookup(uint8_t* ip);
-
-void cmd_nslookup(const char* hostname);extern bool dns_resolve(const char* name, uint8_t* ip);
-
-void cmd_dhcp(void);extern void send_icmp_echo(uint8_t* dest_ip, uint8_t* dest_mac, uint16_t seq);
-
+// External function declarations  
+extern void arp_send_request(uint8_t* target_ip);
+extern uint8_t* arp_lookup(uint8_t* ip);
+extern bool dns_resolve(const char* name, uint8_t* ip);
+extern void send_icmp_echo(uint8_t* dest_ip, uint8_t* dest_mac, uint16_t seq);
+extern void send_icmp_request(uint8_t* dest_ip, uint8_t* dest_mac, uint16_t id, uint16_t seq);
 extern bool is_local_subnet(uint8_t* ip);
-
-// Network commands will be compiled in from kernel.c for nowextern bool parse_ip(const char* str, uint8_t* ip);
-
-// Full extraction requires more refactoring of internal network structuresextern void dhcp_client_run(void);
-
+extern bool parse_ip(const char* str, uint8_t* ip);
+extern bool dhcp_client_run(void);
+extern uint16_t htons(uint16_t n);
+extern void delay_seconds(uint32_t seconds);
 
 void cmd_ifconfig(void) {
     if (!net_device.initialized) {
@@ -38,7 +30,9 @@ void cmd_ifconfig(void) {
     
     char buf[16];
     
-    terminal_writestring("eth0: RTL8139 Fast Ethernet\n");
+    terminal_writestring("eth0: ");
+    terminal_writestring(net_driver_get_name());
+    terminal_writestring("\n");
     
     // DHCP status
     if (net_device.dhcp_configured) {
@@ -229,120 +223,166 @@ void cmd_ping(const char* ip_str, int count) {
         return;
     }
     
-    if (net_device.ip[0] == 0) {
-        terminal_writestring("No IP address configured. Run 'dhcp' first.\n");
-        return;
-    }
-    
-    uint8_t dest_ip[IP_ADDR_LEN];
+    // Parse IP address (or resolve hostname)
+    uint8_t target_ip[IP_ADDR_LEN];
     bool resolved_from_dns = false;
     
-    // Try to parse as IP first
-    if (!parse_ip(ip_str, dest_ip)) {
-        // Not an IP, try DNS resolution
-        terminal_writestring("Resolving ");
+    if (!parse_ip(ip_str, target_ip)) {
+        // Not an IP address, try DNS resolution
+        terminal_writestring("Resolving hostname ");
         terminal_writestring(ip_str);
         terminal_writestring("...\n");
         
-        if (!dns_resolve(ip_str, dest_ip)) {
-            terminal_writestring("ping: unknown host ");
-            terminal_writestring(ip_str);
-            terminal_writestring("\n");
+        if (!dns_resolve(ip_str, target_ip)) {
+            terminal_writestring("Failed to resolve hostname\n");
             return;
         }
+        
         resolved_from_dns = true;
+        terminal_writestring("Resolved to ");
+        for (int i = 0; i < IP_ADDR_LEN; i++) {
+            char buf[4];
+            itoa_helper(target_ip[i], buf);
+            terminal_writestring(buf);
+            if (i < 3) terminal_putchar('.');
+        }
+        terminal_putchar('\n');
     }
     
-    // Determine next hop
+    // Determine next hop (local or via gateway)
     uint8_t* arp_target;
-    if (is_local_subnet(dest_ip)) {
-        arp_target = dest_ip;
+    bool is_local = is_local_subnet(target_ip);
+    
+    if (is_local) {
+        terminal_writestring("Destination is on local network\n");
+        arp_target = target_ip;
     } else {
+        terminal_writestring("Destination is remote, routing via gateway ");
+        // Show gateway IP
+        char buf[16];
+        for (int i = 0; i < IP_ADDR_LEN; i++) {
+            itoa_helper(net_device.gateway[i], buf);
+            terminal_writestring(buf);
+            if (i < IP_ADDR_LEN - 1) terminal_putchar('.');
+        }
+        terminal_writestring("\n");
+        
         if (net_device.gateway[0] == 0) {
-            terminal_writestring("No gateway configured\n");
+            terminal_writestring("No gateway configured - cannot reach remote hosts\n");
             return;
         }
         arp_target = net_device.gateway;
     }
     
-    // Resolve MAC address
-    uint8_t* dest_mac = arp_lookup(arp_target);
-    if (!dest_mac) {
-        terminal_writestring("Resolving MAC address...\n");
+    // Check if next hop MAC is in ARP cache
+    uint8_t* next_hop_mac = arp_lookup(arp_target);
+    if (!next_hop_mac) {
+        terminal_writestring("Resolving next hop MAC via ARP...\n");
         arp_send_request(arp_target);
         
-        // Wait for ARP reply
+        // Wait for ARP reply (3 second timeout)
         int arp_attempts = 0;
-        while (!dest_mac && arp_attempts < 30) {
+        while (!next_hop_mac && arp_attempts < 30) {
+            if (interrupt_command) {
+                terminal_writestring("Interrupted\n");
+                return;
+            }
             net_poll();
-            dest_mac = arp_lookup(arp_target);
-            if (dest_mac) break;
-            delay_ms(100);
+            next_hop_mac = arp_lookup(arp_target);
+            if (next_hop_mac) break;
+            delay_ms(100);  // 100ms delay per attempt = 3 seconds total
             arp_attempts++;
         }
         
-        if (!dest_mac) {
-            terminal_writestring("Cannot reach destination (ARP timeout)\n");
+        if (!next_hop_mac) {
+            terminal_writestring("ARP timeout - next hop unreachable\n");
             return;
         }
     }
     
-    // Start ping
+    // Initialize ping state
+    // Note: target_ip is the final destination, but next_hop_mac is who we send to
     ping_state.active = true;
-    ping_state.count = count;
-    ping_state.received = 0;
-    ping_state.sequence = 0;
+    ping_state.ping_id = 0x1234; // Fixed ID for simplicity
+    ping_state.pings_sent = 0;
+    ping_state.pings_received = 0;
+    ping_state.ping_count = count;
     for (int i = 0; i < IP_ADDR_LEN; i++) {
-        ping_state.target_ip[i] = dest_ip[i];
+        ping_state.target_ip[i] = target_ip[i];
+    }
+    for (int i = 0; i < ETH_ALEN; i++) {
+        ping_state.target_mac[i] = next_hop_mac[i];
     }
     
-    char buf[16];
     terminal_writestring("PING ");
-    for (int i = 0; i < IP_ADDR_LEN; i++) {
-        itoa_helper(dest_ip[i], buf);
-        terminal_writestring(buf);
-        if (i < IP_ADDR_LEN - 1) terminal_putchar('.');
-    }
-    terminal_writestring(": ");
-    itoa_helper(count, buf);
+    terminal_writestring(ip_str);
+    terminal_writestring(" (");
+    terminal_writestring(ip_str);
+    terminal_writestring(") sending ");
+    char buf[16];
+    itoa_helper(ping_state.ping_count, buf);
     terminal_writestring(buf);
-    terminal_writestring(" data bytes\n");
+    terminal_writestring(" packets:\n");
     
     // Send pings
-    for (int i = 0; i < count; i++) {
-        ping_state.sequence = i;
-        ping_state.waiting = true;
-        send_icmp_echo(dest_ip, dest_mac, i);
+    for (int i = 0; i < ping_state.ping_count; i++) {
+        if (interrupt_command) {
+            terminal_writestring("\nInterrupted\n");
+            ping_state.active = false;
+            return;
+        }
+        
+        ping_state.ping_seq = htons(i + 1);
+        ping_state.pings_sent++;
+        
+        terminal_writestring("  Sending ICMP echo request seq=");
+        itoa_helper(i + 1, buf);
+        terminal_writestring(buf);
+        terminal_writestring("...\n");
+        
+        send_icmp_request(ping_state.target_ip, ping_state.target_mac, 
+                         ping_state.ping_id, ping_state.ping_seq);
         
         // Wait for reply (1 second timeout)
-        int attempts = 0;
-        while (ping_state.waiting && attempts < 100) {
+        int wait_attempts = 0;
+        int initial_received = ping_state.pings_received;
+        while (ping_state.pings_received == initial_received && wait_attempts < 100) {
+            if (interrupt_command) {
+                terminal_writestring("\nInterrupted\n");
+                ping_state.active = false;
+                return;
+            }
             net_poll();
-            delay_ms(10);
-            attempts++;
+            if (ping_state.pings_received > initial_received) break;
+            delay_ms(10);  // 10ms delay = 1 second total timeout
+            wait_attempts++;
         }
         
-        if (ping_state.waiting) {
-            terminal_writestring("Request timeout for icmp_seq ");
-            itoa_helper(i, buf);
-            terminal_writestring(buf);
-            terminal_writestring("\n");
+        if (ping_state.pings_received == initial_received) {
+            terminal_writestring("  Timeout - no reply\n");
         }
         
-        // Wait 1 second between pings
-        if (i < count - 1) {
-            delay_ms(1000);
+        // Delay between pings (1 second)
+        if (i < count - 1) {  // Don't delay after last ping
+            delay_seconds(1);
         }
     }
     
     // Summary
-    terminal_writestring("\n--- ping statistics ---\n");
-    itoa_helper(count, buf);
+    terminal_writestring("\n--- ");
+    terminal_writestring(ip_str);
+    terminal_writestring(" ping statistics ---\n");
+    itoa_helper(ping_state.pings_sent, buf);
     terminal_writestring(buf);
     terminal_writestring(" packets transmitted, ");
-    itoa_helper(ping_state.received, buf);
+    itoa_helper(ping_state.pings_received, buf);
     terminal_writestring(buf);
-    terminal_writestring(" packets received\n");
+    terminal_writestring(" received, ");
+    
+    int loss = 100 - (ping_state.pings_received * 100 / ping_state.pings_sent);
+    itoa_helper(loss, buf);
+    terminal_writestring(buf);
+    terminal_writestring("% packet loss\n");
     
     ping_state.active = false;
 }

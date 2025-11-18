@@ -24,7 +24,7 @@ GRUB_MKRESCUE = grub-mkrescue
 ASFLAGS = -f elf32
 
 DRIVER_OBJS = drivers/rtl8139.o drivers/e1000.o drivers/net_registry.o
-CMD_OBJS = kernel/commands/help_command.o kernel/commands/fs_commands.o kernel/commands/user_commands.o kernel/commands/gui_commands.o
+CMD_OBJS = kernel/commands/help_command.o kernel/commands/fs_commands.o kernel/commands/user_commands.o kernel/commands/gui_commands.o kernel/commands/network_commands.o
 KERNEL_OBJS = boot/boot.o kernel/kernel.o kernel/net_integration.o $(DRIVER_OBJS) $(CMD_OBJS)
 KERNEL_BIN = slopos.bin
 ISO_DIR = isodir
@@ -68,6 +68,9 @@ kernel/commands/user_commands.o: kernel/commands/user_commands.c
 	$(CC) $(CFLAGS) $< -o $@
 
 kernel/commands/gui_commands.o: kernel/commands/gui_commands.c
+	$(CC) $(CFLAGS) $< -o $@
+
+kernel/commands/network_commands.o: kernel/commands/network_commands.c
 	$(CC) $(CFLAGS) $< -o $@
 
 $(KERNEL_BIN): $(KERNEL_OBJS)

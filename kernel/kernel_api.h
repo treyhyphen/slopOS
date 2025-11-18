@@ -18,6 +18,8 @@
 #define DNS_CACHE_SIZE 32
 #define DNS_MAX_NAME 256
 #define MAX_WINDOWS 8
+#define RX_BUFFER_SIZE (8192 + 16)
+#define TX_BUFFER_SIZE 1536
 
 // VGA Colors
 #define VGA_COLOR_BLACK 0
@@ -72,28 +74,37 @@ typedef struct {
     bool valid;
 } ArpCacheEntry;
 
+// This must match ARPEntry in kernel.c
+typedef struct {
+    uint8_t ip[IP_ADDR_LEN];
+    uint8_t mac[ETH_ALEN];
+    bool valid;
+} ARPEntry;
+
 typedef struct {
     bool initialized;
+    uint16_t io_base;
     uint8_t mac[ETH_ALEN];
     uint8_t ip[IP_ADDR_LEN];
     uint8_t gateway[IP_ADDR_LEN];
     uint8_t netmask[IP_ADDR_LEN];
     uint8_t dns[IP_ADDR_LEN];
-    bool dhcp_configured;
-    ArpCacheEntry arp_cache[ARP_CACHE_SIZE];
+    uint8_t rx_buffer[RX_BUFFER_SIZE];
+    uint8_t tx_buffer[TX_BUFFER_SIZE];
+    uint16_t rx_index;
+    ARPEntry arp_cache[ARP_CACHE_SIZE];
     uint32_t rx_packets;
     uint32_t tx_packets;
     uint32_t rx_errors;
     uint32_t tx_errors;
+    bool dhcp_configured;
+    uint32_t dhcp_xid;
+    uint8_t dhcp_server_ip[IP_ADDR_LEN];
 } NetworkDevice;
 
 typedef struct {
     bool active;
-    bool waiting;
     uint8_t target_ip[IP_ADDR_LEN];
-    uint16_t sequence;
-    int count;
-    int received;
     uint8_t target_mac[ETH_ALEN];
     uint16_t ping_id;
     uint16_t ping_seq;
