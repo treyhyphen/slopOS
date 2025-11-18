@@ -292,6 +292,9 @@ def render_markdown(all_conversations: List[Tuple[str, str, str, int]]) -> str:
     # Find user prompts for TOC and categorize them
     user_prompts = []
     prompt_counter = 1
+    category_counts = {}
+    timestamps = []
+    
     for i, (conv_type, text, formatted_time, timestamp) in enumerate(sorted_convs):
         if conv_type == 'user':
             first_line = get_first_line(text)
@@ -299,7 +302,80 @@ def render_markdown(all_conversations: List[Tuple[str, str, str, int]]) -> str:
             anchor = sanitize_anchor(f"prompt-{prompt_counter}-{first_line}")
             truncated = truncate_text(text)
             user_prompts.append((prompt_counter, truncated, anchor, formatted_time, text, category))
+            timestamps.append(timestamp)
+            
+            # Count categories
+            category_counts[category] = category_counts.get(category, 0) + 1
             prompt_counter += 1
+    
+    # Calculate time-based statistics
+    unique_days = set()
+    sessions = []
+    current_session_start = None
+    current_session_end = None
+    
+    ONE_HOUR_MS = 60 * 60 * 1000  # 1 hour in milliseconds
+    
+    for ts in timestamps:
+        dt = datetime.fromtimestamp(ts / 1000)
+        unique_days.add(dt.date())
+        
+        if current_session_start is None:
+            # Start new session
+            current_session_start = ts
+            current_session_end = ts
+        else:
+            # Check if this prompt is within 1 hour of the last one
+            time_gap = ts - current_session_end
+            if time_gap <= ONE_HOUR_MS:
+                # Continue current session
+                current_session_end = ts
+            else:
+                # Save previous session and start new one
+                sessions.append((current_session_start, current_session_end))
+                current_session_start = ts
+                current_session_end = ts
+    
+    # Don't forget the last session
+    if current_session_start is not None:
+        sessions.append((current_session_start, current_session_end))
+    
+    # Calculate total hours
+    total_hours = 0
+    for session_start, session_end in sessions:
+        session_duration_ms = session_end - session_start
+        session_hours = session_duration_ms / (1000 * 60 * 60)
+        # Add minimum 15 minutes per session (accounting for thinking/work time)
+        total_hours += max(session_hours, 0.25)
+    
+    # Generate statistics section
+    md_lines.append("## 📊 Chat Statistics\n")
+    md_lines.append(f"**Total Prompts:** {len(user_prompts)}\n")
+    md_lines.append(f"**Unique Days:** {len(unique_days)} days\n")
+    md_lines.append(f"**Coding Sessions:** {len(sessions)} sessions\n")
+    md_lines.append(f"**Estimated Time:** ~{total_hours:.1f} hours ({total_hours/len(unique_days):.1f} hours/day avg)\n")
+    md_lines.append("\n**Prompts by Category:**\n")
+    
+    # Sort categories by count (descending)
+    sorted_categories = sorted(category_counts.items(), key=lambda x: x[1], reverse=True)
+    
+    # Find max count for scaling bars
+    max_count = max(category_counts.values()) if category_counts else 1
+    bar_width = 30  # Maximum bar width in characters
+    
+    # Create table header
+    md_lines.append("| Category | Count | Percentage | Distribution |")
+    md_lines.append("|----------|-------|------------|--------------|")
+    
+    for category, count in sorted_categories:
+        percentage = (count / len(user_prompts) * 100) if user_prompts else 0
+        # Calculate bar length
+        bar_length = int((count / max_count) * bar_width)
+        bar = "█" * bar_length
+        # Format the row
+        md_lines.append(f"| {category} | {count} | {percentage:.1f}% | `{bar}` |")
+    
+    md_lines.append("\n---\n")
     
     # Generate table of contents
     md_lines.append("## Table of Contents\n")
